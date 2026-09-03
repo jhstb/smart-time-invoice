@@ -1,27 +1,20 @@
 {
   "timeEntries": [
     {
-      "date": "3.9.2026",
+      "date": "03.09.2026",
       "projectId": 1,
-      "customerId": 2,
-      "description": "test",
-      "hours": 3
+      "customerId": 1,
+      "description": "Beispielbeschreibung für Schwielowsee",
+      "hours": 2.5
     }
   ],
   "projects": [
-    {
-      "id": 1,
-      "name": "Wissenschafts- und Kulturpark Schwielowsee"
-    }
+    { "id": 1, "name": "Wissenschafts- und Kulturpark Schwielowsee", "customerIds": [1] },
+    { "id": 2, "name": "Schwarze Pumpe", "customerIds": [2, 3] }
   ],
   "customers": [
-    {
-      "id": 1,
-      "name": "Zweckverband"
-    },
-    {
-      "id": 2,
-      "name": "Christine Herntier"
-    }
+    { "id": 1, "name": "Gegenbauer" },
+    { "id": 2, "name": "Christine Herntier" },
+    { "id": 3, "name": "Zweckverband" }
   ]
 }
