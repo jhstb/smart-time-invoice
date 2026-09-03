@@ -1,10 +1,27 @@
 {
-  "timeEntries": [],
+  "timeEntries": [
+    {
+      "date": "3.9.2026",
+      "projectId": 1,
+      "customerId": 2,
+      "description": "test",
+      "hours": 3
+    }
+  ],
   "projects": [
-    { "id": 1, "name": "Wissenschafts- und Kulturpark Schwielowsee" }
+    {
+      "id": 1,
+      "name": "Wissenschafts- und Kulturpark Schwielowsee"
+    }
   ],
   "customers": [
-    { "id": 1, "name": "Zweckverband" },
-    { "id": 2, "name": "Christine Herntier" }
+    {
+      "id": 1,
+      "name": "Zweckverband"
+    },
+    {
+      "id": 2,
+      "name": "Christine Herntier"
+    }
   ]
 }
