@@ -5,22 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Time & Invoice Suite</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; color: #333; }
-        .container { max-width: 800px; margin: 0 auto; }
-        h1, h2 { color: #333; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        select, input, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button {
-            background-color: #4CAF50; color: white; padding: 10px 15px; border: none;
-            border-radius: 4px; cursor: pointer; font-size: 16px; margin-right: 10px;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            color: #333;
         }
-        button:hover { background-color: #45a049; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .hidden { display: none; }
-        .section { margin-bottom: 30px; border: 1px solid #eee; padding: 15px; border-radius: 5px; }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .section {
+            margin-bottom: 30px;
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -37,7 +81,7 @@
             <div class="form-group">
                 <label>Zugehörige Kunden:</label>
                 <div id="newProjectCustomers">
-                    <!-- Kunden-Checkboxen werden hier dynamisch eingefügt -->
+                    <!-- Checkboxen werden hier dynamisch eingefügt -->
                 </div>
             </div>
             <button onclick="addProject()">Projekt hinzufügen</button>
@@ -269,95 +313,97 @@
             });
         }
 
-        // Checkboxen für neue Projekte erstellen (korrigierte Version)
-function updateNewProjectCustomers() {
-    const container = document.getElementById('newProjectCustomers');
-    container.innerHTML = '';
+        // Checkboxen für neue Projekte erstellen
+        function updateNewProjectCustomers() {
+            const container = document.getElementById('newProjectCustomers');
+            container.innerHTML = '';
 
-    customers.forEach(customer => {
-        const div = document.createElement('div');
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = `customer_${customer.id}`;
-        checkbox.value = customer.id;
+            customers.forEach(customer => {
+                const div = document.createElement('div');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `new_project_customer_${customer.id}`;
+                checkbox.value = customer.id;
 
-        const label = document.createElement('label');
-        label.htmlFor = `customer_${customer.id}`;
-        label.textContent = customer.name;
+                const label = document.createElement('label');
+                label.htmlFor = `new_project_customer_${customer.id}`;
+                label.textContent = customer.name;
 
-        div.appendChild(checkbox);
-        div.appendChild(label);
-        container.appendChild(div);
-    });
-}
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                container.appendChild(div);
+            });
+        }
 
-        // Neues Projekt hinzufügen (endgültig korrigierte Version)
-function addProject() {
-    const name = document.getElementById('newProjectName').value.trim();
-    if (!name) {
-        alert('Bitte geben Sie einen Projektnamen ein!');
-        return;
-    }
+        // Neues Projekt hinzufügen
+        function addProject() {
+            const name = document.getElementById('newProjectName').value.trim();
+            if (!name) {
+                alert('Bitte geben Sie einen Projektnamen ein!');
+                return;
+            }
 
-    // Kunden-IDs aus Checkboxen sammeln
-    const customerIds = [];
-    const checkboxes = document.querySelectorAll('#newProjectCustomers input[type="checkbox"]:checked');
+            // Kunden-IDs aus Checkboxen sammeln
+            const customerIds = [];
+            const checkboxes = document.querySelectorAll('#newProjectCustomers input[type="checkbox"]:checked');
 
-    checkboxes.forEach(checkbox => {
-        customerIds.push(parseInt(checkbox.value));
-    });
+            checkboxes.forEach(checkbox => {
+                customerIds.push(parseInt(checkbox.value));
+            });
 
-    if (customerIds.length === 0) {
-        alert('Bitte wählen Sie mindestens einen Kunden für das Projekt aus!');
-        return;
-    }
+            if (customerIds.length === 0) {
+                alert('Bitte wählen Sie mindestens einen Kunden für das Projekt aus!');
+                return;
+            }
 
-    const newProject = {
-        id: nextProjectId++,
-        name: name,
-        customerIds: customerIds
-    };
+            const newProject = {
+                id: nextProjectId++,
+                name: name,
+                customerIds: customerIds
+            };
 
-    projects.push(newProject);
-    localStorage.setItem('projects', JSON.stringify(projects));
-    localStorage.setItem('nextProjectId', nextProjectId);
+            projects.push(newProject);
+            localStorage.setItem('projects', JSON.stringify(projects));
+            localStorage.setItem('nextProjectId', nextProjectId);
 
-    // Felder zurücksetzen
-    document.getElementById('newProjectName').value = '';
-    const checkboxesAll = document.querySelectorAll('#newProjectCustomers input[type="checkbox"]');
-    checkboxesAll.forEach(checkbox => {
-        checkbox.checked = false;
-    });
+            // Felder zurücksetzen
+            document.getElementById('newProjectName').value = '';
+            const checkboxesAll = document.querySelectorAll('#newProjectCustomers input[type="checkbox"]');
+            checkboxesAll.forEach(checkbox => {
+                checkbox.checked = false;
+            });
 
-    alert(`Projekt "${name}" wurde mit ${customerIds.length} Kunden hinzugefügt!`);
-    updateAllDropdowns();
-}
-        // Neuer Kunde hinzufügen (korrigierte Version)
-function addCustomer() {
-    const name = document.getElementById('newCustomerName').value.trim();
-    if (!name) {
-        alert('Bitte geben Sie einen Kundennamen ein!');
-        return;
-    }
+            alert(`Projekt "${name}" wurde mit ${customerIds.length} Kunden hinzugefügt!`);
+            updateAllDropdowns();
+        }
 
-    const newCustomer = {
-        id: nextCustomerId++,
-        name: name
-    };
+        // Neuer Kunde hinzufügen
+        function addCustomer() {
+            const name = document.getElementById('newCustomerName').value.trim();
+            if (!name) {
+                alert('Bitte geben Sie einen Kundennamen ein!');
+                return;
+            }
 
-    customers.push(newCustomer);
-    localStorage.setItem('customers', JSON.stringify(customers));
-    localStorage.setItem('nextCustomerId', nextCustomerId);
+            const newCustomer = {
+                id: nextCustomerId++,
+                name: name
+            };
 
-    // Felder zurücksetzen
-    document.getElementById('newCustomerName').value = '';
+            customers.push(newCustomer);
+            localStorage.setItem('customers', JSON.stringify(customers));
+            localStorage.setItem('nextCustomerId', nextCustomerId);
 
-    // Checkboxen für neue Projekte aktualisieren
-    updateNewProjectCustomers();
+            // Felder zurücksetzen
+            document.getElementById('newCustomerName').value = '';
 
-    alert(`Kunde "${name}" wurde hinzugefügt!`);
-    updateAllDropdowns();
-}
+            // Checkboxen für neue Projekte aktualisieren
+            updateNewProjectCustomers();
+
+            alert(`Kunde "${name}" wurde hinzugefügt!`);
+            updateAllDropdowns();
+        }
+
         // Tabelle aktualisieren
         function updateTable() {
             const tableBody = document.getElementById('timeTableBody');
