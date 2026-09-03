@@ -1,1 +1,10 @@
-{"globalInvoiceCounter":25,"entries":[{"project":"SP","customer":"Christine Herntier","description":"Marktanalyse und Präsentationen erstellen","hours":"7","rate":"350","date":"2026-09-02","invoiceNumber":"RG-2026-09-24"}]}
+{
+  "timeEntries": [],
+  "projects": [
+    { "id": 1, "name": "Wissenschafts- und Kulturpark Schwielowsee" }
+  ],
+  "customers": [
+    { "id": 1, "name": "Zweckverband" },
+    { "id": 2, "name": "Christine Herntier" }
+  ]
+}
