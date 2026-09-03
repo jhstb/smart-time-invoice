@@ -60,9 +60,6 @@
         th {
             background-color: #f2f2f2;
         }
-        .hidden {
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -72,14 +69,14 @@
         <h2>Stundenerfassung</h2>
         <div class="form-group">
             <label for="project">Projekt:</label>
-            <select id="project">
+            <select id="project" onchange="updateCustomerDropdown()">
                 <option value="">-- Projekt auswählen --</option>
             </select>
         </div>
 
         <div class="form-group">
             <label for="customer">Kunde:</label>
-            <select id="customer">
+            <select id="customer" disabled>
                 <option value="">-- Kunde auswählen --</option>
             </select>
         </div>
@@ -125,7 +122,7 @@
 
         <div class="form-group">
             <label for="invoiceProject">Projekt:</label>
-            <select id="invoiceProject">
+            <select id="invoiceProject" onchange="updateInvoiceCustomerDropdown()">
                 <option value="">-- Projekt auswählen --</option>
             </select>
         </div>
@@ -139,327 +136,329 @@
     </div>
 
     <script>
-    // Standard-Projekte und Kunden (Fallback)
-    let projects = [
-        { id: 1, name: "Wissenschafts- und Kulturpark Schwielowsee" }
-    ];
-    let customers = [
-        { id: 1, name: "Zweckverband" },
-        { id: 2, name: "Christine Herntier" }
-    ];
-    let timeEntries = [];
+        // Standard-Daten
+        let projects = [
+            { id: 1, name: "Wissenschafts- und Kulturpark Schwielowsee", customerIds: [1] },
+            { id: 2, name: "Schwarze Pumpe", customerIds: [2, 3] }
+        ];
+        let customers = [
+            { id: 1, name: "Gegenbauer" },
+            { id: 2, name: "Christine Herntier" },
+            { id: 3, name: "Zweckverband" }
+        ];
+        let timeEntries = [];
 
-    // Daten aus localStorage laden (falls vorhanden)
-    function loadLocalData() {
-        const savedTimeEntries = localStorage.getItem('smartTimeData');
-        const savedProjects = localStorage.getItem('projects');
-        const savedCustomers = localStorage.getItem('customers');
+        // Daten aus localStorage laden
+        function loadLocalData() {
+            const savedTimeEntries = localStorage.getItem('smartTimeData');
+            const savedProjects = localStorage.getItem('projects');
+            const savedCustomers = localStorage.getItem('customers');
 
-        if (savedTimeEntries) timeEntries = JSON.parse(savedTimeEntries);
-        if (savedProjects) projects = JSON.parse(savedProjects);
-        if (savedCustomers) customers = JSON.parse(savedCustomers);
-    }
-
-    // Dropdowns für Projekte und Kunden füllen (mit Projekt-Kunden-Zuordnung)
-function populateDropdowns() {
-    const projectSelect = document.getElementById('project');
-    const customerSelect = document.getElementById('customer');
-    const invoiceCustomerSelect = document.getElementById('invoiceCustomer');
-    const invoiceProjectSelect = document.getElementById('invoiceProject');
-
-    // Projekte
-    projectSelect.innerHTML = '<option value="">-- Projekt auswählen --</option>';
-    projects.forEach(project => {
-        const option = document.createElement('option');
-        option.value = project.id;
-        option.textContent = project.name;
-        projectSelect.appendChild(option);
-    });
-
-    // Kunden (alle Kunden anzeigen)
-    customerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
-    customers.forEach(customer => {
-        const option = document.createElement('option');
-        option.value = customer.id;
-        option.textContent = customer.name;
-        customerSelect.appendChild(option);
-    });
-
-    // Rechnungs-Kunde (alle Kunden anzeigen)
-    invoiceCustomerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
-    customers.forEach(customer => {
-        const option = document.createElement('option');
-        option.value = customer.id;
-        option.textContent = customer.name;
-        invoiceCustomerSelect.appendChild(option);
-    });
-
-    // Rechnungs-Projekt (alle Projekte anzeigen)
-    invoiceProjectSelect.innerHTML = '<option value="">-- Projekt auswählen --</option>';
-    projects.forEach(project => {
-        const option = document.createElement('option');
-        option.value = project.id;
-        option.textContent = project.name;
-        invoiceProjectSelect.appendChild(option);
-    });
-}
-        // Rechnungs-Kunde
-        invoiceCustomerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
-        customers.forEach(customer => {
-            const option = document.createElement('option');
-            option.value = customer.id;
-            option.textContent = customer.name;
-            invoiceCustomerSelect.appendChild(option);
-        });
-
-        // Rechnungs-Projekt
-        invoiceProjectSelect.innerHTML = '<option value="">-- Projekt auswählen --</option>';
-        projects.forEach(project => {
-            const option = document.createElement('option');
-            option.value = project.id;
-            option.textContent = project.name;
-            invoiceProjectSelect.appendChild(option);
-        });
-    }
-// Neue Stundeneinträge hinzufügen (mit Validierung)
-function addEntry() {
-    const projectId = parseInt(document.getElementById('project').value);
-    const customerId = parseInt(document.getElementById('customer').value);
-    const description = document.getElementById('description').value;
-    const hours = document.getElementById('hours').value;
-
-    if (!projectId || !customerId || !description || !hours) {
-        alert('Bitte füllen Sie alle Felder aus!');
-        return;
-    }
-
-    // Prüfe, ob der Kunde zum ausgewählten Projekt gehört
-    const project = projects.find(p => p.id === projectId);
-    if (project && !project.customerIds.includes(customerId)) {
-        alert('Der ausgewählte Kunde gehört nicht zu diesem Projekt!');
-        return;
-    }
-
-    const newEntry = {
-        date: new Date().toLocaleDateString('de-DE'),
-        projectId: projectId,
-        customerId: customerId,
-        description: description,
-        hours: parseFloat(hours)
-    };
-
-    timeEntries.push(newEntry);
-    localStorage.setItem('smartTimeData', JSON.stringify(timeEntries));
-    updateTable();
-
-    // Felder zurücksetzen
-    document.getElementById('description').value = '';
-    document.getElementById('hours').value = '';
-}
-
-    // Projektname aus ID holen
-    function getProjectName(projectId) {
-        const project = projects.find(p => p.id == projectId);
-        return project ? project.name : 'Unbekannt';
-    }
-
-    // Kundenname aus ID holen
-    function getCustomerName(customerId) {
-        const customer = customers.find(c => c.id == customerId);
-        return customer ? customer.name : 'Unbekannt';
-    }
-
-    // Neue Stundeneinträge hinzufügen
-    function addEntry() {
-        const projectId = document.getElementById('project').value;
-        const customerId = document.getElementById('customer').value;
-        const description = document.getElementById('description').value;
-        const hours = document.getElementById('hours').value;
-
-        if (!projectId || !customerId || !description || !hours) {
-            alert('Bitte füllen Sie alle Felder aus!');
-            return;
+            if (savedTimeEntries) timeEntries = JSON.parse(savedTimeEntries);
+            if (savedProjects) projects = JSON.parse(savedProjects);
+            if (savedCustomers) customers = JSON.parse(savedCustomers);
         }
 
-        const newEntry = {
-            date: new Date().toLocaleDateString('de-DE'),
-            projectId: parseInt(projectId),
-            customerId: parseInt(customerId),
-            description: description,
-            hours: parseFloat(hours)
-        };
+        // Dropdown für Projekte füllen
+        function populateProjectDropdowns() {
+            const projectSelect = document.getElementById('project');
+            const invoiceProjectSelect = document.getElementById('invoiceProject');
 
-        timeEntries.push(newEntry);
-        localStorage.setItem('smartTimeData', JSON.stringify(timeEntries));
-        updateTable();
+            // Projekte für Stundenerfassung
+            projectSelect.innerHTML = '<option value="">-- Projekt auswählen --</option>';
+            projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.id;
+                option.textContent = project.name;
+                projectSelect.appendChild(option);
+            });
 
-        // Felder zurücksetzen
-        document.getElementById('description').value = '';
-        document.getElementById('hours').value = '';
-    }
+            // Projekte für Rechnungserstellung
+            invoiceProjectSelect.innerHTML = '<option value="">-- Projekt auswählen --</option>';
+            projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.id;
+                option.textContent = project.name;
+                invoiceProjectSelect.appendChild(option);
+            });
+        }
 
-    // Eintrag löschen
-    function deleteEntry(index) {
-        timeEntries.splice(index, 1);
-        localStorage.setItem('smartTimeData', JSON.stringify(timeEntries));
-        updateTable();
-    }
+        // Dropdown für Kunden füllen (basierend auf ausgewähltem Projekt)
+        function updateCustomerDropdown() {
+            const projectId = parseInt(document.getElementById('project').value);
+            const customerSelect = document.getElementById('customer');
 
-    // Rechnung generieren (mit Validierung)
-function generateInvoice() {
-    const customerId = parseInt(document.getElementById('invoiceCustomer').value);
-    const projectId = parseInt(document.getElementById('invoiceProject').value);
-    const month = document.getElementById('invoiceMonth').value;
+            if (!projectId) {
+                customerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
+                customerSelect.disabled = true;
+                return;
+            }
 
-    if (!customerId || !projectId || !month) {
-        alert('Bitte wählen Sie Kunde, Projekt und Monat aus!');
-        return;
-    }
+            const project = projects.find(p => p.id === projectId);
+            if (!project) {
+                customerSelect.innerHTML = '<option value="">-- Keine Kunden für dieses Projekt --</option>';
+                customerSelect.disabled = true;
+                return;
+            }
 
-    // Prüfe, ob der Kunde zum ausgewählten Projekt gehört
-    const project = projects.find(p => p.id === projectId);
-    if (project && !project.customerIds.includes(customerId)) {
-        alert('Der ausgewählte Kunde gehört nicht zu diesem Projekt!');
-        return;
-    }
+            customerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
+            project.customerIds.forEach(customerId => {
+                const customer = customers.find(c => c.id === customerId);
+                if (customer) {
+                    const option = document.createElement('option');
+                    option.value = customer.id;
+                    option.textContent = customer.name;
+                    customerSelect.appendChild(option);
+                }
+            });
+            customerSelect.disabled = false;
+        }
 
-    const filteredEntries = timeEntries.filter(entry =>
-        entry.customerId === customerId &&
-        entry.projectId === projectId &&
-        entry.date.startsWith(month)
-    );
+        // Dropdown für Rechnungs-Kunden füllen (basierend auf ausgewähltem Projekt)
+        function updateInvoiceCustomerDropdown() {
+            const projectId = parseInt(document.getElementById('invoiceProject').value);
+            const customerSelect = document.getElementById('invoiceCustomer');
 
-    if (filteredEntries.length === 0) {
-        alert('Keine Einträge für die ausgewählten Kriterien gefunden!');
-        return;
-    }
+            if (!projectId) {
+                customerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
+                return;
+            }
 
-    const totalHours = filteredEntries.reduce((sum, entry) => sum + entry.hours, 0);
-    const rate = 6000; // Beispielwert: 6000€ pro Tag
-    const totalAmount = totalHours * rate;
+            const project = projects.find(p => p.id === projectId);
+            if (!project) {
+                customerSelect.innerHTML = '<option value="">-- Keine Kunden für dieses Projekt --</option>';
+                return;
+            }
 
-    const invoiceText = `
-        Rechnung für ${getCustomerName(customerId)}
-        Projekt: ${getProjectName(projectId)}
-        Monat: ${month}
+            customerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
+            project.customerIds.forEach(customerId => {
+                const customer = customers.find(c => c.id === customerId);
+                if (customer) {
+                    const option = document.createElement('option');
+                    option.value = customer.id;
+                    option.textContent = customer.name;
+                    customerSelect.appendChild(option);
+                }
+            });
+        }
 
-        Erbrachte Leistungen:
-        ${filteredEntries.map(entry =>
-            `- ${entry.date}: ${entry.description} (${entry.hours} Stunden)`
-        ).join('\n')}
+        // Tabelle mit den erfassten Stunden aktualisieren
+        function updateTable() {
+            const tableBody = document.getElementById('timeTableBody');
+            tableBody.innerHTML = '';
 
-        Gesamtstunden: ${totalHours}
-        Gesamtbetrag: ${totalAmount.toFixed(2)} €
-    `;
+            timeEntries.forEach((entry, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.date || new Date().toLocaleDateString('de-DE')}</td>
+                    <td>${getProjectName(entry.projectId)}</td>
+                    <td>${getCustomerName(entry.customerId)}</td>
+                    <td>${entry.description}</td>
+                    <td>${entry.hours}</td>
+                    <td><button onclick="deleteEntry(${index})">Löschen</button></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
 
-    alert(`Rechnung generiert:\n\n${invoiceText}`);
-}
-    // Daten von GitHub importieren
-    function importDataFromGitHub() {
-        const githubRawUrl = 'https://raw.githubusercontent.com/jhstb/smart-time-invoice/main/smart_time_data.json';
+        // Projektname aus ID holen
+        function getProjectName(projectId) {
+            const project = projects.find(p => p.id === projectId);
+            return project ? project.name : 'Unbekannt';
+        }
 
-        fetch(githubRawUrl)
+        // Kundenname aus ID holen
+        function getCustomerName(customerId) {
+            const customer = customers.find(c => c.id === customerId);
+            return customer ? customer.name : 'Unbekannt';
+        }
+
+        // Neue Stundeneinträge hinzufügen
+        function addEntry() {
+            const projectId = parseInt(document.getElementById('project').value);
+            const customerId = parseInt(document.getElementById('customer').value);
+            const description = document.getElementById('description').value;
+            const hours = document.getElementById('hours').value;
+
+            if (!projectId || !customerId || !description || !hours) {
+                alert('Bitte füllen Sie alle Felder aus!');
+                return;
+            }
+
+            const newEntry = {
+                date: new Date().toLocaleDateString('de-DE'),
+                projectId: projectId,
+                customerId: customerId,
+                description: description,
+                hours: parseFloat(hours)
+            };
+
+            timeEntries.push(newEntry);
+            localStorage.setItem('smartTimeData', JSON.stringify(timeEntries));
+            updateTable();
+
+            // Felder zurücksetzen
+            document.getElementById('description').value = '';
+            document.getElementById('hours').value = '';
+            document.getElementById('customer').value = '';
+        }
+
+        // Eintrag löschen
+        function deleteEntry(index) {
+            timeEntries.splice(index, 1);
+            localStorage.setItem('smartTimeData', JSON.stringify(timeEntries));
+            updateTable();
+        }
+
+        // Rechnung generieren
+        function generateInvoice() {
+            const customerId = parseInt(document.getElementById('invoiceCustomer').value);
+            const projectId = parseInt(document.getElementById('invoiceProject').value);
+            const month = document.getElementById('invoiceMonth').value;
+
+            if (!customerId || !projectId || !month) {
+                alert('Bitte wählen Sie Kunde, Projekt und Monat aus!');
+                return;
+            }
+
+            const filteredEntries = timeEntries.filter(entry =>
+                entry.customerId === customerId &&
+                entry.projectId === projectId &&
+                entry.date.startsWith(month)
+            );
+
+            if (filteredEntries.length === 0) {
+                alert('Keine Einträge für die ausgewählten Kriterien gefunden!');
+                return;
+            }
+
+            const totalHours = filteredEntries.reduce((sum, entry) => sum + entry.hours, 0);
+            const rate = 6000; // Beispielwert: 6000€ pro Tag
+            const totalAmount = totalHours * rate;
+
+            const invoiceText = `
+                Rechnung für ${getCustomerName(customerId)}
+                Projekt: ${getProjectName(projectId)}
+                Monat: ${month}
+
+                Erbrachte Leistungen:
+                ${filteredEntries.map(entry =>
+                    `- ${entry.date}: ${entry.description} (${entry.hours} Stunden)`
+                ).join('\n')}
+
+                Gesamtstunden: ${totalHours}
+                Gesamtbetrag: ${totalAmount.toFixed(2)} €
+            `;
+
+            alert(`Rechnung generiert:\n\n${invoiceText}`);
+        }
+
+        // Daten von GitHub importieren
+        function importDataFromGitHub() {
+            const githubRawUrl = 'https://raw.githubusercontent.com/jhstb/smart-time-invoice/main/smart_time_data.json';
+
+            fetch(githubRawUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Datei nicht gefunden. Prüfe, ob die Datei im Repository existiert.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Daten aus GitHub laden
+                    if (data.timeEntries) timeEntries = data.timeEntries;
+                    if (data.projects) projects = data.projects;
+                    if (data.customers) customers = data.customers;
+
+                    // In localStorage speichern
+                    localStorage.setItem('smartTimeData', JSON.stringify(timeEntries));
+                    localStorage.setItem('projects', JSON.stringify(projects));
+                    localStorage.setItem('customers', JSON.stringify(customers));
+
+                    alert('Daten erfolgreich von GitHub importiert!');
+                    populateProjectDropdowns();
+                    updateTable();
+                })
+                .catch(error => {
+                    alert('Fehler beim Importieren von GitHub: ' + error.message);
+                });
+        }
+
+        // Daten nach GitHub exportieren
+        function exportDataToGitHub() {
+            const token = prompt('Bitte gib dein GitHub Personal Access Token ein (für den Export):');
+            if (!token) {
+                alert('Export abgebrochen: Kein Token eingegeben.');
+                return;
+            }
+
+            const data = {
+                timeEntries: timeEntries,
+                projects: projects,
+                customers: customers
+            };
+
+            const githubApiUrl = 'https://api.github.com/repos/jhstb/smart-time-invoice/contents/smart_time_data.json';
+
+            // 1. SHA der bestehenden Datei abrufen
+            fetch(githubApiUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Datei nicht gefunden. Prüfe, ob die Datei im Repository existiert.');
+                    if (response.status === 404) {
+                        return { sha: null };
+                    }
+                    throw new Error(`Fehler beim Abrufen der SHA: ${response.statusText}`);
                 }
                 return response.json();
             })
-            .then(data => {
-                // Daten aus GitHub laden und mit lokalen Daten synchronisieren
-                if (data.timeEntries) timeEntries = data.timeEntries;
-                if (data.projects) projects = data.projects;
-                if (data.customers) customers = data.customers;
+            .then(fileData => {
+                const sha = fileData.sha || null;
 
-                // In localStorage speichern
-                localStorage.setItem('smartTimeData', JSON.stringify(timeEntries));
-                localStorage.setItem('projects', JSON.stringify(projects));
-                localStorage.setItem('customers', JSON.stringify(customers));
+                // 2. Datei mit SHA (oder ohne, falls neu) hochladen
+                const uploadData = {
+                    message: 'Update smart_time_data.json via Smart Time & Invoice Suite',
+                    content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))))
+                };
+                if (sha) {
+                    uploadData.sha = sha;
+                }
 
-                alert('Daten erfolgreich von GitHub importiert!');
-                updateTable();
-                populateDropdowns();
+                return fetch(githubApiUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/vnd.github.v3+json'
+                    },
+                    body: JSON.stringify(uploadData)
+                });
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(`GitHub API Fehler: ${err.message || response.statusText}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(() => {
+                alert('Daten erfolgreich nach GitHub exportiert!');
             })
             .catch(error => {
-                alert('Fehler beim Importieren von GitHub: ' + error.message);
+                alert('Fehler beim Exportieren nach GitHub: ' + error.message);
             });
-    }
-
-    // Daten nach GitHub exportieren
-    function exportDataToGitHub() {
-        const token = prompt('Bitte gib dein GitHub Personal Access Token ein (für den Export):');
-        if (!token) {
-            alert('Export abgebrochen: Kein Token eingegeben.');
-            return;
         }
 
-        const data = {
-            timeEntries: timeEntries,
-            projects: projects,
-            customers: customers
-        };
-
-        const githubApiUrl = 'https://api.github.com/repos/jhstb/smart-time-invoice/contents/smart_time_data.json';
-
-        // 1. SHA der bestehenden Datei abrufen
-        fetch(githubApiUrl, {
-            method: 'GET',
-            headers: {
-                'Authorization': `token ${token}`,
-                'Accept': 'application/vnd.github.v3+json'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                if (response.status === 404) {
-                    return { sha: null }; // Datei existiert nicht, SHA = null
-                }
-                throw new Error(`Fehler beim Abrufen der SHA: ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(fileData => {
-            const sha = fileData.sha || null;
-
-            // 2. Datei mit SHA (oder ohne, falls neu) hochladen
-            const uploadData = {
-                message: 'Update smart_time_data.json via Smart Time & Invoice Suite',
-                content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))))
-            };
-            if (sha) {
-                uploadData.sha = sha;
-            }
-
-            return fetch(githubApiUrl, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/vnd.github.v3+json'
-                },
-                body: JSON.stringify(uploadData)
-            });
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(`GitHub API Fehler: ${err.message || response.statusText}`);
-                });
-            }
-            return response.json();
-        })
-        .then(() => {
-            alert('Daten erfolgreich nach GitHub exportiert!');
-        })
-        .catch(error => {
-            alert('Fehler beim Exportieren nach GitHub: ' + error.message);
-        });
-    }
-
-    // Initialisierung
-    loadLocalData();
-    populateDropdowns();
-    updateTable();
-</script>
+        // Initialisierung
+        loadLocalData();
+        populateProjectDropdowns();
+        updateTable();
+    </script>
 </body>
 </html>
