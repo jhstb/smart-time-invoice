@@ -5,7 +5,7 @@
     { "id": 2, "name": "Schwarze Pumpe", "customerIds": [2, 3] },
     { "id": 3, "name": "Projekt 3", "customerIds": [1, 2] },
     { "id": 4, "name": "Projekt 4", "customerIds": [3] },
-    { "id": 5, "name": "4D Cell", "customerIds": [2, 3] }
+    { "id": 5, "name": "4D Cell", "customerIds": [4] }
   ],
   "customers": [
     { "id": 1, "name": "Gegenbauer" },
