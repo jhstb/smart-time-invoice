@@ -291,7 +291,7 @@ function updateNewProjectCustomers() {
     });
 }
 
-        // Neues Projekt hinzufügen (korrigierte Version)
+        // Neues Projekt hinzufügen (endgültig korrigierte Version)
 function addProject() {
     const name = document.getElementById('newProjectName').value.trim();
     if (!name) {
@@ -301,11 +301,10 @@ function addProject() {
 
     // Kunden-IDs aus Checkboxen sammeln
     const customerIds = [];
-    customers.forEach(customer => {
-        const checkbox = document.getElementById(`customer_${customer.id}`);
-        if (checkbox && checkbox.checked) {
-            customerIds.push(customer.id);
-        }
+    const checkboxes = document.querySelectorAll('#newProjectCustomers input[type="checkbox"]:checked');
+
+    checkboxes.forEach(checkbox => {
+        customerIds.push(parseInt(checkbox.value));
     });
 
     if (customerIds.length === 0) {
@@ -325,9 +324,12 @@ function addProject() {
 
     // Felder zurücksetzen
     document.getElementById('newProjectName').value = '';
-    updateNewProjectCustomers();
+    const checkboxesAll = document.querySelectorAll('#newProjectCustomers input[type="checkbox"]');
+    checkboxesAll.forEach(checkbox => {
+        checkbox.checked = false;
+    });
 
-    alert(`Projekt "${name}" wurde hinzugefügt!`);
+    alert(`Projekt "${name}" wurde mit ${customerIds.length} Kunden hinzugefügt!`);
     updateAllDropdowns();
 }
         // Neuer Kunde hinzufügen (korrigierte Version)
