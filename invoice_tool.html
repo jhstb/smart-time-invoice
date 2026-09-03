@@ -331,30 +331,32 @@
             updateAllDropdowns();
         }
 
-        // Neuer Kunde hinzufügen
-        function addCustomer() {
-            const name = document.getElementById('newCustomerName').value.trim();
-            if (!name) {
-                alert('Bitte geben Sie einen Kundennamen ein!');
-                return;
-            }
+        // Neuer Kunde hinzufügen (korrigierte Version)
+function addCustomer() {
+    const name = document.getElementById('newCustomerName').value.trim();
+    if (!name) {
+        alert('Bitte geben Sie einen Kundennamen ein!');
+        return;
+    }
 
-            const newCustomer = {
-                id: nextCustomerId++,
-                name: name
-            };
+    const newCustomer = {
+        id: nextCustomerId++,
+        name: name
+    };
 
-            customers.push(newCustomer);
-            localStorage.setItem('customers', JSON.stringify(customers));
-            localStorage.setItem('nextCustomerId', nextCustomerId);
+    customers.push(newCustomer);
+    localStorage.setItem('customers', JSON.stringify(customers));
+    localStorage.setItem('nextCustomerId', nextCustomerId);
 
-            // Felder zurücksetzen
-            document.getElementById('newCustomerName').value = '';
-            updateNewProjectCustomers();
+    // Felder zurücksetzen
+    document.getElementById('newCustomerName').value = '';
 
-            alert(`Kunde "${name}" wurde hinzugefügt!`);
-            updateAllDropdowns();
-        }
+    // Checkboxen für neue Projekte aktualisieren
+    updateNewProjectCustomers();
+
+    alert(`Kunde "${name}" wurde hinzugefügt!`);
+    updateAllDropdowns();
+}
 
         // Tabelle aktualisieren
         function updateTable() {
