@@ -160,31 +160,49 @@
         if (savedCustomers) customers = JSON.parse(savedCustomers);
     }
 
-    // Dropdowns für Projekte und Kunden füllen
-    function populateDropdowns() {
-        const projectSelect = document.getElementById('project');
-        const customerSelect = document.getElementById('customer');
-        const invoiceCustomerSelect = document.getElementById('invoiceCustomer');
-        const invoiceProjectSelect = document.getElementById('invoiceProject');
+    // Dropdowns für Projekte und Kunden füllen (mit Projekt-Kunden-Zuordnung)
+function populateDropdowns() {
+    const projectSelect = document.getElementById('project');
+    const customerSelect = document.getElementById('customer');
+    const invoiceCustomerSelect = document.getElementById('invoiceCustomer');
+    const invoiceProjectSelect = document.getElementById('invoiceProject');
 
-        // Projekte
-        projectSelect.innerHTML = '<option value="">-- Projekt auswählen --</option>';
-        projects.forEach(project => {
-            const option = document.createElement('option');
-            option.value = project.id;
-            option.textContent = project.name;
-            projectSelect.appendChild(option);
-        });
+    // Projekte
+    projectSelect.innerHTML = '<option value="">-- Projekt auswählen --</option>';
+    projects.forEach(project => {
+        const option = document.createElement('option');
+        option.value = project.id;
+        option.textContent = project.name;
+        projectSelect.appendChild(option);
+    });
 
-        // Kunden
-        customerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
-        customers.forEach(customer => {
-            const option = document.createElement('option');
-            option.value = customer.id;
-            option.textContent = customer.name;
-            customerSelect.appendChild(option);
-        });
+    // Kunden (alle Kunden anzeigen)
+    customerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
+    customers.forEach(customer => {
+        const option = document.createElement('option');
+        option.value = customer.id;
+        option.textContent = customer.name;
+        customerSelect.appendChild(option);
+    });
 
+    // Rechnungs-Kunde (alle Kunden anzeigen)
+    invoiceCustomerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
+    customers.forEach(customer => {
+        const option = document.createElement('option');
+        option.value = customer.id;
+        option.textContent = customer.name;
+        invoiceCustomerSelect.appendChild(option);
+    });
+
+    // Rechnungs-Projekt (alle Projekte anzeigen)
+    invoiceProjectSelect.innerHTML = '<option value="">-- Projekt auswählen --</option>';
+    projects.forEach(project => {
+        const option = document.createElement('option');
+        option.value = project.id;
+        option.textContent = project.name;
+        invoiceProjectSelect.appendChild(option);
+    });
+}
         // Rechnungs-Kunde
         invoiceCustomerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
         customers.forEach(customer => {
@@ -203,25 +221,41 @@
             invoiceProjectSelect.appendChild(option);
         });
     }
+// Neue Stundeneinträge hinzufügen (mit Validierung)
+function addEntry() {
+    const projectId = parseInt(document.getElementById('project').value);
+    const customerId = parseInt(document.getElementById('customer').value);
+    const description = document.getElementById('description').value;
+    const hours = document.getElementById('hours').value;
 
-    // Tabelle mit den erfassten Stunden aktualisieren
-    function updateTable() {
-        const tableBody = document.getElementById('timeTableBody');
-        tableBody.innerHTML = '';
-
-        timeEntries.forEach((entry, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${entry.date || new Date().toLocaleDateString('de-DE')}</td>
-                <td>${getProjectName(entry.projectId)}</td>
-                <td>${getCustomerName(entry.customerId)}</td>
-                <td>${entry.description}</td>
-                <td>${entry.hours}</td>
-                <td><button onclick="deleteEntry(${index})">Löschen</button></td>
-            `;
-            tableBody.appendChild(row);
-        });
+    if (!projectId || !customerId || !description || !hours) {
+        alert('Bitte füllen Sie alle Felder aus!');
+        return;
     }
+
+    // Prüfe, ob der Kunde zum ausgewählten Projekt gehört
+    const project = projects.find(p => p.id === projectId);
+    if (project && !project.customerIds.includes(customerId)) {
+        alert('Der ausgewählte Kunde gehört nicht zu diesem Projekt!');
+        return;
+    }
+
+    const newEntry = {
+        date: new Date().toLocaleDateString('de-DE'),
+        projectId: projectId,
+        customerId: customerId,
+        description: description,
+        hours: parseFloat(hours)
+    };
+
+    timeEntries.push(newEntry);
+    localStorage.setItem('smartTimeData', JSON.stringify(timeEntries));
+    updateTable();
+
+    // Felder zurücksetzen
+    document.getElementById('description').value = '';
+    document.getElementById('hours').value = '';
+}
 
     // Projektname aus ID holen
     function getProjectName(projectId) {
@@ -271,49 +305,55 @@
         updateTable();
     }
 
-    // Rechnung generieren
-    function generateInvoice() {
-        const customerId = document.getElementById('invoiceCustomer').value;
-        const projectId = document.getElementById('invoiceProject').value;
-        const month = document.getElementById('invoiceMonth').value;
+    // Rechnung generieren (mit Validierung)
+function generateInvoice() {
+    const customerId = parseInt(document.getElementById('invoiceCustomer').value);
+    const projectId = parseInt(document.getElementById('invoiceProject').value);
+    const month = document.getElementById('invoiceMonth').value;
 
-        if (!customerId || !projectId || !month) {
-            alert('Bitte wählen Sie Kunde, Projekt und Monat aus!');
-            return;
-        }
-
-        const filteredEntries = timeEntries.filter(entry =>
-            entry.customerId == customerId &&
-            entry.projectId == projectId &&
-            entry.date.startsWith(month)
-        );
-
-        if (filteredEntries.length === 0) {
-            alert('Keine Einträge für die ausgewählten Kriterien gefunden!');
-            return;
-        }
-
-        const totalHours = filteredEntries.reduce((sum, entry) => sum + entry.hours, 0);
-        const rate = 6000; // 6000€ pro Tag (Beispielwert)
-        const totalAmount = totalHours * rate;
-
-        const invoiceText = `
-            Rechnung für ${getCustomerName(customerId)}
-            Projekt: ${getProjectName(projectId)}
-            Monat: ${month}
-
-            Erbrachte Leistungen:
-            ${filteredEntries.map(entry =>
-                `- ${entry.date}: ${entry.description} (${entry.hours} Stunden)`
-            ).join('\n')}
-
-            Gesamtstunden: ${totalHours}
-            Gesamtbetrag: ${totalAmount.toFixed(2)} €
-        `;
-
-        alert(`Rechnung generiert:\n\n${invoiceText}`);
+    if (!customerId || !projectId || !month) {
+        alert('Bitte wählen Sie Kunde, Projekt und Monat aus!');
+        return;
     }
 
+    // Prüfe, ob der Kunde zum ausgewählten Projekt gehört
+    const project = projects.find(p => p.id === projectId);
+    if (project && !project.customerIds.includes(customerId)) {
+        alert('Der ausgewählte Kunde gehört nicht zu diesem Projekt!');
+        return;
+    }
+
+    const filteredEntries = timeEntries.filter(entry =>
+        entry.customerId === customerId &&
+        entry.projectId === projectId &&
+        entry.date.startsWith(month)
+    );
+
+    if (filteredEntries.length === 0) {
+        alert('Keine Einträge für die ausgewählten Kriterien gefunden!');
+        return;
+    }
+
+    const totalHours = filteredEntries.reduce((sum, entry) => sum + entry.hours, 0);
+    const rate = 6000; // Beispielwert: 6000€ pro Tag
+    const totalAmount = totalHours * rate;
+
+    const invoiceText = `
+        Rechnung für ${getCustomerName(customerId)}
+        Projekt: ${getProjectName(projectId)}
+        Monat: ${month}
+
+        Erbrachte Leistungen:
+        ${filteredEntries.map(entry =>
+            `- ${entry.date}: ${entry.description} (${entry.hours} Stunden)`
+        ).join('\n')}
+
+        Gesamtstunden: ${totalHours}
+        Gesamtbetrag: ${totalAmount.toFixed(2)} €
+    `;
+
+    alert(`Rechnung generiert:\n\n${invoiceText}`);
+}
     // Daten von GitHub importieren
     function importDataFromGitHub() {
         const githubRawUrl = 'https://raw.githubusercontent.com/jhstb/smart-time-invoice/main/smart_time_data.json';
