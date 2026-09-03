@@ -314,36 +314,49 @@
             alert(`Rechnung generiert:\n\n${invoiceText}`);
         }
 
-        // Daten von GitHub importieren
-        function importDataFromGitHub() {
-            const githubRawUrl = 'https://raw.githubusercontent.com/jhstb/smart-time-invoice/main/smart_time_data.json';
+        // Daten von GitHub importieren (mit Standarddaten-Fallback)
+function importDataFromGitHub() {
+    const githubRawUrl = 'https://raw.githubusercontent.com/jhstb/smart-time-invoice/main/smart_time_data.json';
 
-            fetch(githubRawUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Datei nicht gefunden. Prüfe, ob die Datei im Repository existiert.');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    timeEntries = data.timeEntries || [];
-                    projects = data.projects || projects;
-                    customers = data.customers || customers;
+    fetch(githubRawUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Datei nicht gefunden. Prüfe, ob die Datei im Repository existiert.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Standard-Projekte und Kunden, falls nicht in der JSON vorhanden
+            if (!data.projects || data.projects.length === 0) {
+                data.projects = [{ id: 1, name: "Wissenschafts- und Kulturpark Schwielowsee" }];
+            }
+            if (!data.customers || data.customers.length === 0) {
+                data.customers = [
+                    { id: 1, name: "Zweckverband" },
+                    { id: 2, name: "Christine Herntier" }
+                ];
+            }
+            if (!data.timeEntries) {
+                data.timeEntries = [];
+            }
 
-                    localStorage.setItem('smartTimeData', JSON.stringify(timeEntries));
-                    localStorage.setItem('projects', JSON.stringify(projects));
-                    localStorage.setItem('customers', JSON.stringify(customers));
+            // Daten in localStorage speichern
+            timeEntries = data.timeEntries;
+            projects = data.projects;
+            customers = data.customers;
 
-                    alert('Daten erfolgreich von GitHub importiert!');
-                    updateTable();
-                    populateDropdowns();
-                })
-                .catch(error => {
-                    alert('Fehler beim Importieren von GitHub: ' + error.message);
-                });
-        }
-// Daten nach GitHub exportieren (mit SHA-Abfrage)
-function exportDataToGitHub() {
+            localStorage.setItem('smartTimeData', JSON.stringify(timeEntries));
+            localStorage.setItem('projects', JSON.stringify(projects));
+            localStorage.setItem('customers', JSON.stringify(customers));
+
+            alert('Daten erfolgreich von GitHub importiert!');
+            updateTable();
+            populateDropdowns();
+        })
+        .catch(error => {
+            alert('Fehler beim Importieren von GitHub: ' + error.message);
+        });
+}function exportDataToGitHub() {
     const token = prompt('Bitte gib dein GitHub Personal Access Token ein (für den Export):');
     if (!token) {
         alert('Export abgebrochen: Kein Token eingegeben.');
