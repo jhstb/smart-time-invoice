@@ -342,8 +342,7 @@
                     alert('Fehler beim Importieren von GitHub: ' + error.message);
                 });
         }
-
-        // Daten nach GitHub exportieren (korrigierte Version)
+// Daten nach GitHub exportieren (mit SHA-Abfrage)
 function exportDataToGitHub() {
     const token = prompt('Bitte gib dein GitHub Personal Access Token ein (für den Export):');
     if (!token) {
@@ -359,17 +358,45 @@ function exportDataToGitHub() {
 
     const githubApiUrl = 'https://api.github.com/repos/jhstb/smart-time-invoice/contents/smart_time_data.json';
 
+    // 1. SHA der bestehenden Datei abrufen
     fetch(githubApiUrl, {
-        method: 'PUT',
+        method: 'GET',
         headers: {
             'Authorization': `token ${token}`,
-            'Content-Type': 'application/json',
             'Accept': 'application/vnd.github.v3+json'
-        },
-        body: JSON.stringify({
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            // Falls die Datei nicht existiert, SHA auf null setzen
+            if (response.status === 404) {
+                return { sha: null };
+            }
+            throw new Error(`Fehler beim Abrufen der SHA: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(fileData => {
+        const sha = fileData.sha || null;
+
+        // 2. Datei mit SHA (oder ohne, falls neu) hochladen
+        const uploadData = {
             message: 'Update smart_time_data.json via Smart Time & Invoice Suite',
             content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))))
-        })
+        };
+        if (sha) {
+            uploadData.sha = sha; // SHA nur hinzufügen, wenn die Datei existiert
+        }
+
+        return fetch(githubApiUrl, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/vnd.github.v3+json'
+            },
+            body: JSON.stringify(uploadData)
+        });
     })
     .then(response => {
         if (!response.ok) {
