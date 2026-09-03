@@ -1,13 +1,5 @@
 {
-  "timeEntries": [
-    {
-      "date": "03.09.2026",
-      "projectId": 1,
-      "customerId": 1,
-      "description": "Beispielbeschreibung für Schwielowsee",
-      "hours": 2.5
-    }
-  ],
+  "timeEntries": [],
   "projects": [
     { "id": 1, "name": "Wissenschafts- und Kulturpark Schwielowsee", "customerIds": [1] },
     { "id": 2, "name": "Schwarze Pumpe", "customerIds": [2, 3] }
