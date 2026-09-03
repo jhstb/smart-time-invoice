@@ -88,7 +88,7 @@
 
         <div class="form-group">
             <label for="hours">Stunden:</label>
-            <input type="number" id="hours" step="0.25">
+            <input type="number" id="hours" step="0.25" min="0">
         </div>
 
         <button onclick="addEntry()">Stunde hinzufügen</button>
@@ -108,7 +108,6 @@
                 </tr>
             </thead>
             <tbody id="timeTableBody">
-                <!-- Daten werden hier dynamisch eingefügt -->
             </tbody>
         </table>
 
@@ -164,7 +163,6 @@
             const projectSelect = document.getElementById('project');
             const invoiceProjectSelect = document.getElementById('invoiceProject');
 
-            // Projekte für Stundenerfassung
             projectSelect.innerHTML = '<option value="">-- Projekt auswählen --</option>';
             projects.forEach(project => {
                 const option = document.createElement('option');
@@ -173,7 +171,6 @@
                 projectSelect.appendChild(option);
             });
 
-            // Projekte für Rechnungserstellung
             invoiceProjectSelect.innerHTML = '<option value="">-- Projekt auswählen --</option>';
             projects.forEach(project => {
                 const option = document.createElement('option');
@@ -278,10 +275,10 @@
             const projectId = parseInt(document.getElementById('project').value);
             const customerId = parseInt(document.getElementById('customer').value);
             const description = document.getElementById('description').value;
-            const hours = document.getElementById('hours').value;
+            const hours = parseFloat(document.getElementById('hours').value);
 
-            if (!projectId || !customerId || !description || !hours) {
-                alert('Bitte füllen Sie alle Felder aus!');
+            if (!projectId || !customerId || !description || isNaN(hours) || hours <= 0) {
+                alert('Bitte füllen Sie alle Felder aus und geben Sie eine positive Stundenanzahl ein!');
                 return;
             }
 
@@ -290,7 +287,7 @@
                 projectId: projectId,
                 customerId: customerId,
                 description: description,
-                hours: parseFloat(hours)
+                hours: hours
             };
 
             timeEntries.push(newEntry);
@@ -365,10 +362,18 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Daten aus GitHub laden
-                    if (data.timeEntries) timeEntries = data.timeEntries;
-                    if (data.projects) projects = data.projects;
-                    if (data.customers) customers = data.customers;
+                    // Daten aus GitHub laden und validieren
+                    if (data.projects && data.projects.length > 0) {
+                        projects = data.projects;
+                    }
+                    if (data.customers && data.customers.length > 0) {
+                        customers = data.customers;
+                    }
+                    if (data.timeEntries) {
+                        timeEntries = data.timeEntries.filter(entry =>
+                            entry.hours && entry.hours > 0
+                        );
+                    }
 
                     // In localStorage speichern
                     localStorage.setItem('smartTimeData', JSON.stringify(timeEntries));
@@ -400,7 +405,6 @@
 
             const githubApiUrl = 'https://api.github.com/repos/jhstb/smart-time-invoice/contents/smart_time_data.json';
 
-            // 1. SHA der bestehenden Datei abrufen
             fetch(githubApiUrl, {
                 method: 'GET',
                 headers: {
@@ -419,8 +423,6 @@
             })
             .then(fileData => {
                 const sha = fileData.sha || null;
-
-                // 2. Datei mit SHA (oder ohne, falls neu) hochladen
                 const uploadData = {
                     message: 'Update smart_time_data.json via Smart Time & Invoice Suite',
                     content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))))
