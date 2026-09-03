@@ -147,29 +147,27 @@
             </table>
         </div>
 
-        <!-- Rechnung erstellen -->
-        <div class="section">
-            <h2>Rechnung erstellen</h2>
-            <div class="form-group">
-                <label for="invoiceCustomer">Kunde:</label>
-                <select id="invoiceCustomer">
-                    <option value="">-- Kunde auswählen --</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="invoiceProject">Projekt:</label>
-                <select id="invoiceProject" onchange="updateInvoiceCustomerDropdown()">
-                    <option value="">-- Projekt auswählen --</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="invoiceMonth">Monat:</label>
-                <input type="month" id="invoiceMonth">
-            </div>
-            <button onclick="generateInvoice()">Rechnung generieren</button>
-        </div>
+        <!-- Ersetze den Rechnungserstellungs-Bereich in deinem HTML-Code mit diesem Block: -->
+<div class="section">
+    <h2>Rechnung erstellen</h2>
+    <div class="form-group">
+        <label for="invoiceCustomer">Kunde:</label>
+        <select id="invoiceCustomer" onchange="updateInvoiceProjectDropdown()">
+            <option value="">-- Kunde auswählen --</option>
+        </select>
     </div>
-
+    <div class="form-group">
+        <label for="invoiceProject">Projekt:</label>
+        <select id="invoiceProject">
+            <option value="">-- Projekt auswählen --</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="invoiceMonth">Monat:</label>
+        <input type="month" id="invoiceMonth">
+    </div>
+    <button onclick="generateInvoice()">Rechnung generieren</button>
+</div>
     <script>
         // Dateninitialisierung
         let projects = [];
@@ -284,33 +282,29 @@ function updateCustomerDropdown() {
 
     customerSelect.disabled = false;
 }
-        // Kunden-Dropdown für Rechnungserstellung aktualisieren
-        function updateInvoiceCustomerDropdown() {
-            const projectId = parseInt(document.getElementById('invoiceProject').value);
-            const customerSelect = document.getElementById('invoiceCustomer');
+        // Projekt-Dropdown für Rechnungserstellung aktualisieren (basierend auf Kunde)
+function updateInvoiceProjectDropdown() {
+    const customerId = parseInt(document.getElementById('invoiceCustomer').value);
+    const projectSelect = document.getElementById('invoiceProject');
 
-            if (!projectId) {
-                customerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
-                return;
-            }
+    if (!customerId) {
+        projectSelect.innerHTML = '<option value="">-- Projekt auswählen --</option>';
+        return;
+    }
 
-            const project = projects.find(p => p.id === projectId);
-            if (!project) {
-                customerSelect.innerHTML = '<option value="">-- Keine Kunden für dieses Projekt --</option>';
-                return;
-            }
+    // Alle Projekte finden, die den ausgewählten Kunden enthalten
+    const customerProjects = projects.filter(project =>
+        project.customerIds.includes(customerId)
+    );
 
-            customerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
-            project.customerIds.forEach(customerId => {
-                const customer = customers.find(c => c.id === customerId);
-                if (customer) {
-                    const option = document.createElement('option');
-                    option.value = customer.id;
-                    option.textContent = customer.name;
-                    customerSelect.appendChild(option);
-                }
-            });
-        }
+    projectSelect.innerHTML = '<option value="">-- Projekt auswählen --</option>';
+    customerProjects.forEach(project => {
+        const option = document.createElement('option');
+        option.value = project.id;
+        option.textContent = project.name;
+        projectSelect.appendChild(option);
+    });
+}
 
         // Checkboxen für neue Projekte erstellen
         function updateNewProjectCustomers() {
@@ -471,48 +465,51 @@ function updateCustomerDropdown() {
             updateTable();
         }
 
-        // Rechnung generieren
-        function generateInvoice() {
-            const customerId = parseInt(document.getElementById('invoiceCustomer').value);
-            const projectId = parseInt(document.getElementById('invoiceProject').value);
-            const month = document.getElementById('invoiceMonth').value;
+        // Rechnung generieren (korrigierte Version mit Monat)
+function generateInvoice() {
+    const customerId = parseInt(document.getElementById('invoiceCustomer').value);
+    const projectId = parseInt(document.getElementById('invoiceProject').value);
+    const month = document.getElementById('invoiceMonth').value;
 
-            if (!customerId || !projectId || !month) {
-                alert('Bitte wählen Sie Kunde, Projekt und Monat aus!');
-                return;
-            }
+    if (!customerId || !projectId || !month) {
+        alert('Bitte wählen Sie Kunde, Projekt und Monat aus!');
+        return;
+    }
 
-            const filteredEntries = timeEntries.filter(entry =>
-                entry.customerId === customerId &&
-                entry.projectId === projectId &&
-                entry.date.startsWith(month)
-            );
+    // Filtere Einträge nach Kunde, Projekt und Monat (JJJJ-MM)
+    const filteredEntries = timeEntries.filter(entry => {
+        const entryDate = new Date(entry.date);
+        const entryMonth = entryDate.toISOString().substring(0, 7); // YYYY-MM
+        return entry.customerId === customerId &&
+               entry.projectId === projectId &&
+               entryMonth === month;
+    });
 
-            if (filteredEntries.length === 0) {
-                alert('Keine Einträge für die ausgewählten Kriterien gefunden!');
-                return;
-            }
+    if (filteredEntries.length === 0) {
+        alert(`Keine Einträge für Kunde: ${getCustomerName(customerId)}, Projekt: ${getProjectName(projectId)} und Monat: ${month} gefunden!`);
+        return;
+    }
 
-            const totalHours = filteredEntries.reduce((sum, entry) => sum + entry.hours, 0);
-            const rate = 6000; // Beispielwert: 6000€ pro Tag
-            const totalAmount = totalHours * rate;
+    const totalHours = filteredEntries.reduce((sum, entry) => sum + entry.hours, 0);
+    const rate = 6000; // Beispielwert: 6000€ pro Tag
+    const totalAmount = totalHours * rate;
 
-            const invoiceText = `
-                Rechnung für ${getCustomerName(customerId)}
-                Projekt: ${getProjectName(projectId)}
-                Monat: ${month}
+    const invoiceText = `
+        Rechnung für ${getCustomerName(customerId)}
+        Projekt: ${getProjectName(projectId)}
+        Monat: ${new Date(month + '-01').toLocaleDateString('de-DE', { year: 'numeric', month: 'long' })}
 
-                Erbrachte Leistungen:
-                ${filteredEntries.map(entry =>
-                    `- ${entry.date}: ${entry.description} (${entry.hours} Stunden)`
-                ).join('\n')}
+        Erbrachte Leistungen:
+        ${filteredEntries.map(entry =>
+            `- ${entry.date}: ${entry.description} (${entry.hours} Stunden)`
+        ).join('\n')}
 
-                Gesamtstunden: ${totalHours}
-                Gesamtbetrag: ${totalAmount.toFixed(2)} €
-            `;
+        Gesamtstunden: ${totalHours}
+        Gesamtbetrag: ${totalAmount.toFixed(2)} €
+    `;
 
-            alert(`Rechnung generiert:\n\n${invoiceText}`);
-        }
+    alert(`Rechnung generiert:\n\n${invoiceText}`);
+}
 
         // Daten von GitHub importieren
         function importDataFromGitHub() {
