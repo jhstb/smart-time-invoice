@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Time & Invoice Suite</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .invoice-preview, .data-actions {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .hidden {
+            display: none;
+        }
+        #fileInput {
+            display: none;
+        }
+        /* Rechnungslayout */
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .sender, .recipient {
+            width: 48%;
+        }
+        .invoice-details {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .services {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .services th, .services td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .services th {
+            background-color: #f2f2f2;
+        }
+        .totals {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .payment-terms {
+            margin-top: 20px;
+        }
+        .bank-details {
+            margin-top: 30px;
+            font-size: 0.9em;
+        }
+        .signature {
+            margin-top: 30px;
+            text-align: right;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Smart Time & Invoice Suite</h1>
+        
+        <h2>Stundenerfassung</h2>
+        <div class="form-group">
+            <label for="project">Projekt:</label>
+            <select id="project" onchange="updateCustomers()">
+                <option value="">-- Projekt auswählen --</option>
+                <option value="SP">SP (Schwarze Pumpe)</option>
+                <option value="4D">4D (4D Cell)</option>
+                <option value="CA">CA (Cloudatlas)</option>
+                <option value="PZ">PZ (Petzow)</option>
+                <option value="Sonstiges">Sonstiges</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="customer">Kunde:</label>
+            <select id="customer" disabled>
+                <option value="">-- Kunde auswählen --</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Beschreibung:</label>
+            <textarea id="description" rows="3"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="hours">Stunden:</label>
+            <input type="number" id="hours" step="0.25" min="0">
+        </div>
+        
+        <div class="form-group">
+            <label for="rate">Stundensatz:</label>
+            <select id="rate">
+                <option value="350">350€</option>
+                <option value="300">300€</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="date">Datum:</label>
+            <input type="date" id="date" onchange="updateInvoicePreview()">
+        </div>
+        
+        <button onclick="addEntry()">Stunde hinzufügen</button>
+        
+        <div class="data-actions">
+            <h3>Datenverwaltung (iCloud)</h3>
+            <button onclick="exportData()">Daten exportieren (JSON)</button>
+            <button onclick="document.getElementById('fileInput').click()">Daten importieren (JSON)</button>
+            <input type="file" id="fileInput" accept=".json" onchange="importData(event)" class="hidden">
+        </div>
+        
+        <h2>Rechnungsvorschau</h2>
+        <div class="invoice-preview" id="invoicePreview">
+            <p>Wählen Sie ein Projekt, einen Kunden und ein Datum aus, um die Rechnungsnummer zu generieren.</p>
+        </div>
+        
+        <h2>Erfasste Stunden</h2>
+        <table id="timeEntries">
+            <thead>
+                <tr>
+                    <th>Projekt</th>
+                    <th>Kunde</th>
+                    <th>Beschreibung</th>
+                    <th>Stunden</th>
+                    <th>Stundensatz</th>
+                    <th>Datum</th>
+                    <th>Rechnungsnummer</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- ZeitEinträge werden hier dynamisch eingefügt -->
+            </tbody>
+        </table>
+        
+        <button onclick="generateInvoice()">Rechnung erstellen</button>
+        <button onclick="generateReport()">Bericht erstellen</button>
+    </div>
+    
+    <!-- Modal für Rechnungsvorschau -->
+    <div id="invoiceModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="invoiceOutput"></div>
+            <button onclick="printInvoice()" class="no-print">Drucken</button>
+        </div>
+    </div>
+    
+    <script>
+        // Kundenprojekt-Zuordnung
+        const customerMap = {
+            'SP': ['Zweckverband', 'Christine Herntier'],
+            '4D': ['J. Schöneberg'],
+            'CA': ['V. Bernotas'],
+            'PZ': ['Gegenbauer'],
+            'Sonstiges': []
+        };
+        
+        // Stundensatz pro Kunde/Projekt
+        const rateMap = {
+            'PZ': '300',
+            'Gegenbauer': '300',
+            'default': '350'
+        };
+        
+        // Globale fortlaufende Rechnungsnummer (Start bei 24)
+        let globalInvoiceCounter = 24;
+        
+        // Absenderdaten
+        const senderData = {
+            name: "Prof. Dr. J. STEINBACH",
+            address: "Ladiusstr. 14, 14165 Berlin",
+            taxNumber: "25/544/70191",
+            phone: "+49 156 79773327",
+            email: "joergstb@icloud.com"
+        };
+        
+        // Bankverbindung
+        const bankData = {
+            bank: "Deutsche Bank 24",
+            iban: "DE83 1007 0024 0291 1550 00",
+            bic: "DEUTDEDBBER",
+            accountHolder: "Dr. Jörg Steinbach"
+        };
+        
+        // Lade Daten aus localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('smartTimeData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                globalInvoiceCounter = data.globalInvoiceCounter || 24;
+                const entries = data.entries || [];
+                
+                const table = document.getElementById('timeEntries').getElementsByTagName('tbody')[0];
+                entries.forEach(entry => {
+                    const newRow = table.insertRow();
+                    newRow.insertCell(0).textContent = entry.project;
+                    newRow.insertCell(1).textContent = entry.customer;
+                    newRow.insertCell(2).textContent = entry.description;
+                    newRow.insertCell(3).textContent = entry.hours;
+                    newRow.insertCell(4).textContent = `${entry.rate}€`;
+                    newRow.insertCell(5).textContent = entry.date;
+                    newRow.insertCell(6).textContent = entry.invoiceNumber;
+                });
+            }
+        }
+        
+        // Speichere Daten in localStorage
+        function saveData() {
+            const table = document.getElementById('timeEntries').getElementsByTagName('tbody')[0];
+            const entries = [];
+            
+            for (let i = 0; i < table.rows.length; i++) {
+                const row = table.rows[i];
+                entries.push({
+                    project: row.cells[0].textContent,
+                    customer: row.cells[1].textContent,
+                    description: row.cells[2].textContent,
+                    hours: row.cells[3].textContent,
+                    rate: row.cells[4].textContent.replace('€', ''),
+                    date: row.cells[5].textContent,
+                    invoiceNumber: row.cells[6].textContent
+                });
+            }
+            
+            const data = {
+                globalInvoiceCounter: globalInvoiceCounter,
+                entries: entries
+            };
+            
+            localStorage.setItem('smartTimeData', JSON.stringify(data));
+        }
+        
+        // Exportiere Daten als JSON-Datei
+        function exportData() {
+            const data = localStorage.getItem('smartTimeData');
+            if (!data) {
+                alert('Keine Daten zum Exportieren vorhanden.');
+                return;
+            }
+            
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'smart_time_data.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Importiere Daten aus JSON-Datei
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    localStorage.setItem('smartTimeData', JSON.stringify(data));
+                    alert('Daten erfolgreich importiert! Bitte laden Sie die Seite neu.');
+                } catch (error) {
+                    alert('Fehler beim Importieren der Daten: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        // Aktualisiert das Kunden-Dropdown
+        function updateCustomers() {
+            const projectSelect = document.getElementById('project');
+            const customerSelect = document.getElementById('customer');
+            const selectedProject = projectSelect.value;
+            
+            customerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
+            
+            if (selectedProject === 'Sonstiges') {
+                customerSelect.innerHTML = '<option value="">Freier Kunde</option>';
+                customerSelect.disabled = true;
+                customerSelect.type = 'text';
+                customerSelect.placeholder = 'Kundenname eingeben';
+            } else {
+                const customers = customerMap[selectedProject] || [];
+                customers.forEach(customer => {
+                    const option = document.createElement('option');
+                    option.value = customer;
+                    option.textContent = customer;
+                    customerSelect.appendChild(option);
+                });
+                customerSelect.disabled = customers.length === 0;
+                customerSelect.type = 'select-one';
+            }
+            
+            updateRate();
+            updateInvoicePreview();
+        }
+        
+        // Aktualisiert den Stundensatz
+        function updateRate() {
+            const projectSelect = document.getElementById('project');
+            const customerSelect = document.getElementById('customer');
+            const rateSelect = document.getElementById('rate');
+            const selectedProject = projectSelect.value;
+            const selectedCustomer = customerSelect.value;
+            
+            let rate = rateMap['default'];
+            if (selectedProject === 'PZ' || selectedCustomer === 'Gegenbauer') {
+                rate = rateMap['PZ'];
+            }
+            rateSelect.value = rate;
+        }
+        
+        // Aktualisiert die Rechnungsvorschau
+        function updateInvoicePreview() {
+            const projectSelect = document.getElementById('project');
+            const dateInput = document.getElementById('date');
+            const invoicePreview = document.getElementById('invoicePreview');
+            const selectedProject = projectSelect.value;
+            const selectedDate = dateInput.value;
+            
+            if (!selectedProject || !selectedDate) {
+                invoicePreview.innerHTML = '<p>Wählen Sie ein Projekt und ein Datum aus, um die Rechnungsnummer zu generieren.</p>';
+                return;
+            }
+            
+            const date = new Date(selectedDate);
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const invoiceNumber = `RG-${year}-${month}-${String(globalInvoiceCounter).padStart(2, '0')}`;
+            
+            invoicePreview.innerHTML = `
+                <p><strong>Rechnungsnummer:</strong> ${invoiceNumber}</p>
+                <p><strong>Projekt:</strong> ${selectedProject}</p>
+                <p><strong>Monat:</strong> ${month}/${year}</p>
+            `;
+        }
+        
+        // Fügt einen neuen Zeiteintrag hinzu
+        function addEntry() {
+            const projectSelect = document.getElementById('project');
+            const customerSelect = document.getElementById('customer');
+            const descriptionInput = document.getElementById('description');
+            const hoursInput = document.getElementById('hours');
+            const rateSelect = document.getElementById('rate');
+            const dateInput = document.getElementById('date');
+            
+            const selectedProject = projectSelect.value;
+            const selectedCustomer = customerSelect.value || customerSelect.placeholder;
+            const description = descriptionInput.value;
+            const hours = hoursInput.value;
+            const rate = rateSelect.value;
+            const date = dateInput.value;
+            
+            if (!selectedProject || !selectedCustomer || !description || !hours || !date) {
+                alert('Bitte füllen Sie alle Felder aus.');
+                return;
+            }
+            
+            const entryDate = new Date(date);
+            const month = String(entryDate.getMonth() + 1).padStart(2, '0');
+            const year = entryDate.getFullYear();
+            const invoiceNumber = `RG-${year}-${month}-${String(globalInvoiceCounter).padStart(2, '0')}`;
+            
+            const table = document.getElementById('timeEntries').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+            
+            newRow.insertCell(0).textContent = selectedProject;
+            newRow.insertCell(1).textContent = selectedCustomer;
+            newRow.insertCell(2).textContent = description;
+            newRow.insertCell(3).textContent = hours;
+            newRow.insertCell(4).textContent = `${rate}€`;
+            newRow.insertCell(5).textContent = date;
+            newRow.insertCell(6).textContent = invoiceNumber;
+            
+            globalInvoiceCounter++;
+            
+            descriptionInput.value = '';
+            hoursInput.value = '';
+            dateInput.value = '';
+            
+            saveData();
+            updateInvoicePreview();
+        }
+        
+        // Generiert die Rechnung im Modal
+        function generateInvoice() {
+            const table = document.getElementById('timeEntries').getElementsByTagName('tbody')[0];
+            if (table.rows.length === 0) {
+                alert('Keine Einträge zum Erstellen einer Rechnung vorhanden.');
+                return;
+            }
+            
+            // Rechnungsdaten sammeln
+            const invoiceData = {
+                invoiceNumber: table.rows[0].cells[6].textContent,
+                date: new Date().toLocaleDateString('de-DE'),
+                entries: []
+            };
+            
+            let netTotal = 0;
+            for (let i = 0; i < table.rows.length; i++) {
+                const row = table.rows[i];
+                const hours = parseFloat(row.cells[3].textContent);
+                const rate = parseFloat(row.cells[4].textContent.replace('€', '').replace(',', '.'));
+                const amount = hours * rate;
+                netTotal += amount;
+                
+                invoiceData.entries.push({
+                    position: i + 1,
+                    description: row.cells[2].textContent,
+                    hours: hours,
+                    rate: rate,
+                    amount: amount
+                });
+            }
+            
+            const taxRate = 0.19;
+            const taxAmount = netTotal * taxRate;
+            const totalAmount = netTotal + taxAmount;
+            
+            // Rechnung im Modal anzeigen
+            const modal = document.getElementById('invoiceModal');
+            const output = document.getElementById('invoiceOutput');
+            
+            output.innerHTML = `
+                <div class="invoice-container">
+                    <div class="header">
+                        <div class="sender">
+                            <strong>${senderData.name}</strong><br>
+                            ${senderData.address}<br>
+                            Steuernummer: ${senderData.taxNumber}<br>
+                            Tel.: ${senderData.phone}<br>
+                            E-Mail: ${senderData.email}
+                        </div>
+                        <div class="recipient">
+                            <strong>${table.rows[0].cells[1].textContent}</strong><br>
+                            ${getCustomerAddress(table.rows[0].cells[1].textContent)}
+                        </div>
+                    </div>
+                    
+                    <div class="invoice-details">
+                        <h2>Rechnung Nr. ${invoiceData.invoiceNumber}</h2>
+                        <p><strong>Leistungszeitraum:</strong> ${getPeriod(table.rows)}</p>
+                        <p><strong>Rechnungsdatum:</strong> ${invoiceData.date}</p>
+                    </div>
+                    
+                    <p>vereinbarungsgemäß stelle ich Ihnen folgende Leistungen in Rechnung:</p>
+                    
+                    <table class="services">
+                        <thead>
+                            <tr>
+                                <th>Pos.</th>
+                                <th>Bezeichnung</th>
+                                <th>Stunden/Tage</th>
+                                <th>Einzel (€)</th>
+                                <th>Gesamt (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${invoiceData.entries.map(entry => `
+                                <tr>
+                                    <td>${entry.position}</td>
+                                    <td>${entry.description}</td>
+                                    <td>${entry.hours}</td>
+                                    <td>${entry.rate.toFixed(2).replace('.', ',')}</td>
+                                    <td>${entry.amount.toFixed(2).replace('.', ',')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div class="totals">
+                        <p><strong>Summe Netto:</strong> ${netTotal.toFixed(2).replace('.', ',')} €</p>
+                        <p><strong>Umsatzsteuer 19%:</strong> ${taxAmount.toFixed(2).replace('.', ',')} €</p>
+                        <p><strong>Rechnungsbetrag:</strong> ${totalAmount.toFixed(2).replace('.', ',')} €</p>
+                    </div>
+                    
+                    <div class="payment-terms">
+                        <p>Zahlung innerhalb von 14 Tagen ab Rechnungseingang ohne Abzüge an die unten angegebene Bankverbindung.</p>
+                    </div>
+                    
+                    <div class="bank-details">
+                        <p><strong>${bankData.bank}</strong></p>
+                        <p>IBAN: ${bankData.iban}</p>
+                        <p>BIC: ${bankData.bic}</p>
+                        <p>Kto. Inh.: ${bankData.accountHolder}</p>
+                    </div>
+                    
+                    <div class="signature">
+                        <p>Mit freundlichen Grüßen</p>
+                        <p>_______________________</p>
+                    </div>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+        }
+        
+        // Hilfsfunktion: Kundendaten (Adresse) abrufen
+        function getCustomerAddress(customer) {
+            const customerAddresses = {
+                'PERISKOP Partners AG': 'Kleiststraße 21, 10787 Berlin, Deutschland',
+                'Zweckverband': 'Adresse des Zweckverbands',
+                'Christine Herntier': 'Adresse von Christine Herntier',
+                'J. Schöneberg': 'Adresse von J. Schöneberg',
+                'V. Bernotas': 'Adresse von V. Bernotas',
+                'Gegenbauer': 'Adresse von Gegenbauer'
+            };
+            return customerAddresses[customer] || customer;
+        }
+        
+        // Hilfsfunktion: Leistungszeitraum ermitteln
+        function getPeriod(rows) {
+            if (rows.length === 0) return '';
+            
+            const dates = [];
+            for (let i = 0; i < rows.length; i++) {
+                dates.push(rows[i].cells[5].textContent);
+            }
+            
+            const startDate = new Date(Math.min(...dates.map(d => new Date(d))));
+            const endDate = new Date(Math.max(...dates.map(d => new Date(d))));
+            
+            const startMonth = startDate.toLocaleString('de-DE', { month: 'long', year: 'numeric' });
+            const endMonth = endDate.toLocaleString('de-DE', { month: 'long', year: 'numeric' });
+            
+            return startMonth === endMonth ? startMonth : `${startMonth} / ${endMonth}`;
+        }
+        
+        // Schließt das Modal
+        function closeModal() {
+            document.getElementById('invoiceModal').style.display = 'none';
+        }
+        
+        // Druckt die Rechnung
+        function printInvoice() {
+            window.print();
+        }
+        
+        // Erstellt einen Bericht
+        function generateReport() {
+            const table = document.getElementById('timeEntries').getElementsByTagName('tbody')[0];
+            if (table.rows.length === 0) {
+                alert('Keine Einträge zum Erstellen eines Berichts vorhanden.');
+                return;
+            }
+            
+            let reportText = 'Bericht\n\n';
+            reportText += 'Zeitraum: ' + getPeriod(table.rows) + '\n\n';
+            reportText += 'Zusammenfassung pro Projekt:\n';
+            
+            const projectSummary = {};
+            for (let i = 0; i < table.rows.length; i++) {
+                const row = table.rows[i];
+                const project = row.cells[0].textContent;
+                const hours = parseFloat(row.cells[3].textContent);
+                const rate = parseFloat(row.cells[4].textContent.replace('€', '').replace(',', '.'));
+                const amount = hours * rate;
+                
+                if (!projectSummary[project]) {
+                    projectSummary[project] = { hours: 0, amount: 0 };
+                }
+                projectSummary[project].hours += hours;
+                projectSummary[project].amount += amount;
+            }
+            
+            for (const project in projectSummary) {
+                reportText += `${project}: ${projectSummary[project].hours} Stunden, ${projectSummary[project].amount.toFixed(2).replace('.', ',')}€\n`;
+            }
+            
+            alert(reportText);
+        }
+        
+        // Initialisierung
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('date');
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+            loadData();
+            updateInvoicePreview();
+        });
+        
+        // Schließt das Modal bei Klick außerhalb
+        window.onclick = function(event) {
+            const modal = document.getElementById('invoiceModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
