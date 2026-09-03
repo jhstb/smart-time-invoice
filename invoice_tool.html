@@ -145,28 +145,69 @@
             </table>
         </div>
 
-        <!-- Rechnung erstellen -->
-        <div class="section">
-            <h2>Rechnung erstellen</h2>
-            <div class="form-group">
-                <label for="invoiceProject">Projekt:</label>
-                <select id="invoiceProject" onchange="updateInvoiceCustomerDropdown()">
-                    <option value="">-- Projekt auswählen --</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="invoiceCustomer">Kunde:</label>
-                <select id="invoiceCustomer">
-                    <option value="">-- Kunde auswählen --</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="invoiceMonth">Monat:</label>
-                <input type="month" id="invoiceMonth">
-            </div>
-            <button onclick="generateInvoice()">Rechnung generieren</button>
-        </div>
-    </div>
+        // Rechnung generieren (korrigierte Version mit Formatierung)
+function generateInvoice() {
+    const projectId = parseInt(document.getElementById('invoiceProject').value);
+    const customerId = parseInt(document.getElementById('invoiceCustomer').value);
+    const monthInput = document.getElementById('invoiceMonth').value;
+
+    if (!projectId || !customerId || !monthInput) {
+        alert('Bitte wählen Sie Projekt, Kunde und Monat aus!');
+        return;
+    }
+
+    // Monat im Format YYYY-MM in DD.MM.YYYY umwandeln und Filter erstellen
+    const [year, month] = monthInput.split('-');
+    const monthStart = new Date(year, parseInt(month) - 1, 1);
+    const monthEnd = new Date(year, parseInt(month), 0);
+
+    const filteredEntries = timeEntries.filter(entry => {
+        // Datum aus dem Eintrag parsen (DD.MM.YYYY → YYYY-MM-DD)
+        const [day, entryMonth, entryYear] = entry.date.split('.');
+        const entryDate = new Date(`${entryYear}-${entryMonth}-${day}`);
+
+        return entry.customerId === customerId &&
+               entry.projectId === projectId &&
+               entryDate >= monthStart &&
+               entryDate <= monthEnd;
+    });
+
+    if (filteredEntries.length === 0) {
+        alert(`Keine Einträge für Projekt: ${getProjectName(projectId)}, Kunde: ${getCustomerName(customerId)} und Monat: ${monthInput} gefunden!`);
+        return;
+    }
+
+    // Gesamtstunden berechnen
+    const totalHours = filteredEntries.reduce((sum, entry) => sum + entry.hours, 0);
+    const rate = 6000; // 6000€ pro Tag
+    const totalAmount = totalHours * rate;
+
+    // Monat als "Monatsname Jahr" formatieren (z. B. "September 2026")
+    const monthName = monthStart.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+
+    // Rechnungstext mit Formatierung
+    const invoiceText = `
+Rechnung
+=======
+
+Kunde: ${getCustomerName(customerId)}
+Projekt: ${getProjectName(projectId)}
+Monat: ${monthName}
+
+---
+Erbrachte Leistungen:
+---
+${filteredEntries.map(entry =>
+    `• ${entry.date}: ${entry.description} (${entry.hours} Stunden)`
+).join('\n')}
+
+---
+Gesamtstunden: ${totalHours}
+Gesamtbetrag: ${totalAmount.toFixed(2).replace('.', ',')} €
+    `;
+
+    alert(invoiceText);
+}
 
     <script>
         // Dateninitialisierung
