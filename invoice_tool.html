@@ -269,68 +269,67 @@
             });
         }
 
-        // Checkboxen für neue Projekte erstellen
-        function updateNewProjectCustomers() {
-            const container = document.getElementById('newProjectCustomers');
-            container.innerHTML = '';
+        // Checkboxen für neue Projekte erstellen (korrigierte Version)
+function updateNewProjectCustomers() {
+    const container = document.getElementById('newProjectCustomers');
+    container.innerHTML = '';
 
-            customers.forEach(customer => {
-                const div = document.createElement('div');
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.id = `customer_${customer.id}`;
-                checkbox.value = customer.id;
+    customers.forEach(customer => {
+        const div = document.createElement('div');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `customer_${customer.id}`;
+        checkbox.value = customer.id;
 
-                const label = document.createElement('label');
-                label.htmlFor = `customer_${customer.id}`;
-                label.textContent = customer.name;
+        const label = document.createElement('label');
+        label.htmlFor = `customer_${customer.id}`;
+        label.textContent = customer.name;
 
-                div.appendChild(checkbox);
-                div.appendChild(label);
-                container.appendChild(div);
-            });
+        div.appendChild(checkbox);
+        div.appendChild(label);
+        container.appendChild(div);
+    });
+}
+
+        // Neues Projekt hinzufügen (korrigierte Version)
+function addProject() {
+    const name = document.getElementById('newProjectName').value.trim();
+    if (!name) {
+        alert('Bitte geben Sie einen Projektnamen ein!');
+        return;
+    }
+
+    // Kunden-IDs aus Checkboxen sammeln
+    const customerIds = [];
+    customers.forEach(customer => {
+        const checkbox = document.getElementById(`customer_${customer.id}`);
+        if (checkbox && checkbox.checked) {
+            customerIds.push(customer.id);
         }
+    });
 
-        // Neues Projekt hinzufügen
-        function addProject() {
-            const name = document.getElementById('newProjectName').value.trim();
-            if (!name) {
-                alert('Bitte geben Sie einen Projektnamen ein!');
-                return;
-            }
+    if (customerIds.length === 0) {
+        alert('Bitte wählen Sie mindestens einen Kunden für das Projekt aus!');
+        return;
+    }
 
-            // Kunden-IDs aus Checkboxen sammeln
-            const customerIds = [];
-            customers.forEach(customer => {
-                const checkbox = document.getElementById(`customer_${customer.id}`);
-                if (checkbox && checkbox.checked) {
-                    customerIds.push(customer.id);
-                }
-            });
+    const newProject = {
+        id: nextProjectId++,
+        name: name,
+        customerIds: customerIds
+    };
 
-            if (customerIds.length === 0) {
-                alert('Bitte wählen Sie mindestens einen Kunden für das Projekt aus!');
-                return;
-            }
+    projects.push(newProject);
+    localStorage.setItem('projects', JSON.stringify(projects));
+    localStorage.setItem('nextProjectId', nextProjectId);
 
-            const newProject = {
-                id: nextProjectId++,
-                name: name,
-                customerIds: customerIds
-            };
+    // Felder zurücksetzen
+    document.getElementById('newProjectName').value = '';
+    updateNewProjectCustomers();
 
-            projects.push(newProject);
-            localStorage.setItem('projects', JSON.stringify(projects));
-            localStorage.setItem('nextProjectId', nextProjectId);
-
-            // Felder zurücksetzen
-            document.getElementById('newProjectName').value = '';
-            updateNewProjectCustomers();
-
-            alert(`Projekt "${name}" wurde hinzugefügt!`);
-            updateAllDropdowns();
-        }
-
+    alert(`Projekt "${name}" wurde hinzugefügt!`);
+    updateAllDropdowns();
+}
         // Neuer Kunde hinzufügen (korrigierte Version)
 function addCustomer() {
     const name = document.getElementById('newCustomerName').value.trim();
