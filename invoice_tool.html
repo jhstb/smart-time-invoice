@@ -69,7 +69,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Smart Time & Invoice Suite</h1>
+        <h1>Smart Time &  Suite</h1>
 
         <!-- Projektverwaltung -->
         <div class="section">
@@ -145,7 +145,7 @@
             </table>
         </div>
 
-        // Rechnung generieren (korrigierte Version mit Formatierung)
+        // Rechnung generieren (mit vollem Layout inkl. Steuernummer, Adresse etc.)
 function generateInvoice() {
     const projectId = parseInt(document.getElementById('invoiceProject').value);
     const customerId = parseInt(document.getElementById('invoiceCustomer').value);
@@ -162,10 +162,8 @@ function generateInvoice() {
     const monthEnd = new Date(year, parseInt(month), 0);
 
     const filteredEntries = timeEntries.filter(entry => {
-        // Datum aus dem Eintrag parsen (DD.MM.YYYY → YYYY-MM-DD)
         const [day, entryMonth, entryYear] = entry.date.split('.');
         const entryDate = new Date(`${entryYear}-${entryMonth}-${day}`);
-
         return entry.customerId === customerId &&
                entry.projectId === projectId &&
                entryDate >= monthStart &&
@@ -177,38 +175,62 @@ function generateInvoice() {
         return;
     }
 
-    // Gesamtstunden berechnen
+    // Gesamtstunden und Betrag berechnen
     const totalHours = filteredEntries.reduce((sum, entry) => sum + entry.hours, 0);
     const rate = 6000; // 6000€ pro Tag
     const totalAmount = totalHours * rate;
+    const taxRate = 0.19; // 19% MwSt.
+    const taxAmount = totalAmount * taxRate;
+    const totalWithTax = totalAmount + taxAmount;
 
-    // Monat als "Monatsname Jahr" formatieren (z. B. "September 2026")
+    // Rechnungsnummer generieren (Beispiel: SP-2026-09-001)
+    const invoiceNumber = `SP-${year}-${month}-${String(filteredEntries.length).padStart(3, '0')}`;
+
+    // Monat als "Monatsname Jahr" formatieren
     const monthName = monthStart.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
 
-    // Rechnungstext mit Formatierung
-    const invoiceText = `
-Rechnung
-=======
+    // Datum der Rechnung (heute)
+    const invoiceDate = new Date().toLocaleDateString('de-DE');
 
-Kunde: ${getCustomerName(customerId)}
+    // Rechnungstext mit vollem Layout
+    const invoiceText = `
+Jörg Steinbach
+Wissenschafts- und Kulturpark Schwielowsee
+14542 Schwielowsee
+
+---
+Rechnung Nr.: ${invoiceNumber}
+Datum: ${invoiceDate}
+Steuernummer: 123/456/78901
+---
+
+An:
+${getCustomerName(customerId)}
+${customers.find(c => c.id === customerId)?.address || ''}
+
+---
 Projekt: ${getProjectName(projectId)}
 Monat: ${monthName}
 
 ---
-Erbrachte Leistungen:
+Leistungsbeschreibung:
 ---
 ${filteredEntries.map(entry =>
-    `• ${entry.date}: ${entry.description} (${entry.hours} Stunden)`
+    `• ${entry.date}: ${entry.description} (${entry.hours} Stunden à 6.000 €/Tag)`
 ).join('\n')}
 
 ---
-Gesamtstunden: ${totalHours}
-Gesamtbetrag: ${totalAmount.toFixed(2).replace('.', ',')} €
+Zwischensumme:   ${totalAmount.toFixed(2).replace('.', ',')} €
++ 19% MwSt.:      ${taxAmount.toFixed(2).replace('.', ',')} €
+---
+Gesamtbetrag:    ${totalWithTax.toFixed(2).replace('.', ',')} €
+
+---
+Zahlungsbedingungen: 14 Tage netto
     `;
 
     alert(invoiceText);
 }
-
     <script>
         // Dateninitialisierung
         let projects = [];
