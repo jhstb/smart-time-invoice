@@ -6,6 +6,13 @@
       "customerId": 2,
       "description": "test",
       "hours": 5
+    },
+    {
+      "date": "3.9.2026",
+      "projectId": 1,
+      "customerId": 1,
+      "description": "Test",
+      "hours": 3
     }
   ],
   "projects": [
