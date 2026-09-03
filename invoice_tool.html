@@ -343,49 +343,49 @@
                 });
         }
 
-        // Daten nach GitHub exportieren
-        function exportDataToGitHub() {
-            const token = prompt('Bitte gib dein GitHub Personal Access Token ein (für den Export):');
-            if (!token) {
-                alert('Export abgebrochen: Kein Token eingegeben.');
-                return;
-            }
+        // Daten nach GitHub exportieren (korrigierte Version)
+function exportDataToGitHub() {
+    const token = prompt('Bitte gib dein GitHub Personal Access Token ein (für den Export):');
+    if (!token) {
+        alert('Export abgebrochen: Kein Token eingegeben.');
+        return;
+    }
 
-            const data = {
-                timeEntries: timeEntries,
-                projects: projects,
-                customers: customers
-            };
+    const data = {
+        timeEntries: timeEntries,
+        projects: projects,
+        customers: customers
+    };
 
-            const githubApiUrl = 'https://api.github.com/repos/jhstb/smart-time-invoice/contents/smart_time_data.json';
+    const githubApiUrl = 'https://api.github.com/repos/jhstb/smart-time-invoice/contents/smart_time_data.json';
 
-            fetch(githubApiUrl, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: 'Update smart_time_data.json via Smart Time & Invoice Suite',
-                    content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))))
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => {
-                        throw new Error(`GitHub API Fehler: ${err.message || response.statusText}`);
-                    });
-                }
-                return response.json();
-            })
-            .then(() => {
-                alert('Daten erfolgreich nach GitHub exportiert!');
-            })
-            .catch(error => {
-                alert('Fehler beim Exportieren nach GitHub: ' + error.message);
+    fetch(githubApiUrl, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `token ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github.v3+json'
+        },
+        body: JSON.stringify({
+            message: 'Update smart_time_data.json via Smart Time & Invoice Suite',
+            content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))))
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(`GitHub API Fehler: ${err.message || response.statusText}`);
             });
         }
-
+        return response.json();
+    })
+    .then(() => {
+        alert('Daten erfolgreich nach GitHub exportiert!');
+    })
+    .catch(error => {
+        alert('Fehler beim Exportieren nach GitHub: ' + error.message);
+    });
+}
         // Initialisierung
         populateDropdowns();
         updateTable();
