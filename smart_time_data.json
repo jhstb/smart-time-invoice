@@ -2,11 +2,15 @@
   "timeEntries": [],
   "projects": [
     { "id": 1, "name": "Wissenschafts- und Kulturpark Schwielowsee", "customerIds": [1] },
-    { "id": 2, "name": "Schwarze Pumpe", "customerIds": [2, 3] }
+    { "id": 2, "name": "Schwarze Pumpe", "customerIds": [2, 3] },
+    { "id": 3, "name": "Projekt 3", "customerIds": [1, 2] },
+    { "id": 4, "name": "Projekt 4", "customerIds": [3] }
   ],
   "customers": [
     { "id": 1, "name": "Gegenbauer" },
     { "id": 2, "name": "Christine Herntier" },
     { "id": 3, "name": "Zweckverband" }
-  ]
+  ],
+  "nextProjectId": 5,
+  "nextCustomerId": 4
 }
