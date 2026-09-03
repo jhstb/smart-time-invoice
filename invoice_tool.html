@@ -468,59 +468,60 @@
             updateTable();
         }
 
-        // Rechnung generieren (mit vollem Layout)
-        function generateInvoice() {
-            const projectId = parseInt(document.getElementById('invoiceProject').value);
-            const customerId = parseInt(document.getElementById('invoiceCustomer').value);
-            const monthInput = document.getElementById('invoiceMonth').value;
+        // Rechnung generieren (mit 300€/h, 350€/h und Tagespauschale ab 8h)
+function generateInvoice() {
+    const projectId = parseInt(document.getElementById('invoiceProject').value);
+    const customerId = parseInt(document.getElementById('invoiceCustomer').value);
+    const monthInput = document.getElementById('invoiceMonth').value;
 
-            if (!projectId || !customerId || !monthInput) {
-                alert('Bitte wählen Sie Projekt, Kunde und Monat aus!');
-                return;
-            }
+    if (!projectId || !customerId || !monthInput) {
+        alert('Bitte wählen Sie Projekt, Kunde und Monat aus!');
+        return;
+    }
 
-            // Monat im Format YYYY-MM in DD.MM.YYYY umwandeln und Filter erstellen
-            const [year, month] = monthInput.split('-');
-            const monthStart = new Date(year, parseInt(month) - 1, 1);
-            const monthEnd = new Date(year, parseInt(month), 0);
+    // Monat im Format YYYY-MM in DD.MM.YYYY umwandeln und Filter erstellen
+    const [year, month] = monthInput.split('-');
+    const monthStart = new Date(year, parseInt(month) - 1, 1);
+    const monthEnd = new Date(year, parseInt(month), 0);
 
-            const filteredEntries = timeEntries.filter(entry => {
-                const [day, entryMonth, entryYear] = entry.date.split('.');
-                const entryDate = new Date(`${entryYear}-${entryMonth}-${day}`);
-                return entry.customerId === customerId &&
-                       entry.projectId === projectId &&
-                       entryDate >= monthStart &&
-                       entryDate <= monthEnd;
-            });
+    // Einträge nach Projekt, Kunde und Monat filtern
+    const filteredEntries = timeEntries.filter(entry => {
+        const [day, entryMonth, entryYear] = entry.date.split('.');
+        const entryDate = new Date(`${entryYear}-${entryMonth}-${day}`);
+        return entry.customerId === customerId &&
+               entry.projectId === projectId &&
+               entryDate >= monthStart &&
+               entryDate <= monthEnd;
+    });
 
-            if (filteredEntries.length === 0) {
-                alert(`Keine Einträge für Projekt: ${getProjectName(projectId)}, Kunde: ${getCustomerName(customerId)} und Monat: ${monthInput} gefunden!`);
-                return;
-            }
+    if (filteredEntries.length === 0) {
+        alert(`Keine Einträge für Projekt: ${getProjectName(projectId)}, Kunde: ${getCustomerName(customerId)} und Monat: ${monthInput} gefunden!`);
+        return;
+    }
 
-            // Gesamtstunden und Betrag berechnen
-            const totalHours = filteredEntries.reduce((sum, entry) => sum + entry.hours, 0);
-            const rate = 6000; // 6000€ pro Tag
-            const totalAmount = totalHours * rate;
-            const taxRate = 0.19; // 19% MwSt.
-            const taxAmount = totalAmount * taxRate;
-            const totalWithTax = totalAmount + taxAmount;
+    // Rechnungsnummer generieren (RG-JJJJ-MM-NNN)
+    const invoiceNumber = `RG-${year}-${month}-${String(nextInvoiceNumber).padStart(3, '0')}`;
+    nextInvoiceNumber++;
+    localStorage.setItem('nextInvoiceNumber', nextInvoiceNumber);
 
-            // Rechnungsnummer generieren
-            const invoiceNumber = `SP-${year}-${month}-${String(filteredEntries.length).padStart(3, '0')}`;
+    // Monat als "Monatsname Jahr" formatieren
+    const monthName = monthStart.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+    const invoiceDate = new Date().toLocaleDateString('de-DE');
+    const customer = customers.find(c => c.id === customerId);
+    const customerAddress = customer ? customer.address.replace(/\n/g, '\n') : '';
 
-            // Monat als "Monatsname Jahr" formatieren
-            const monthName = monthStart.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+    // Stunden nach Tagen gruppieren und Beträge berechnen
+    const dailyEntries = {};
+    filteredEntries.forEach(entry => {
+        if (!dailyEntries[entry.date]) {
+            dailyEntries[entry.date] = { hours: 0, entries: [] };
+        }
+        dailyEntries[entry.date].hours += entry.hours;
+        dailyEntries[entry.date].entries.push(entry);
+    });
 
-            // Datum der Rechnung (heute)
-            const invoiceDate = new Date().toLocaleDateString('de-DE');
-
-            // Kundenadresse
-            const customer = customers.find(c => c.id === customerId);
-            const customerAddress = customer ? customer.address : '';
-
-            // Rechnungstext mit vollem Layout
-            const invoiceText = `
+    // Rechnungstext erstellen
+    let invoiceText = `
 Jörg Steinbach
 Wissenschafts- und Kulturpark Schwielowsee
 14542 Schwielowsee
@@ -545,10 +546,39 @@ Monat: ${monthName}
 ---
 Leistungsbeschreibung:
 ---
-${filteredEntries.map(entry =>
-    `• ${entry.date}: ${entry.description} (${entry.hours} Stunden à 6.000 €/Tag)`
-).join('\n')}
+`;
 
+    // Tagesweise Berechnung
+    let totalAmount = 0;
+    for (const [date, dayData] of Object.entries(dailyEntries)) {
+        const hours = dayData.hours;
+        let dayAmount = 0;
+        let dayDescription = '';
+
+        if (hours >= 8) {
+            // Tagespauschale: 3000€/Tag
+            dayAmount = 3000;
+            dayDescription = `${date}: ${hours} Stunden (Tagespauschale: 3.000 €)`;
+        } else {
+            // Einzelstunden: 300€/h oder 350€/h (je nach Vereinbarung)
+            // Hier annehmen, dass die ersten 4 Stunden mit 350€/h und der Rest mit 300€/h abgerechnet wird
+            // (Anpassbar nach deinen Regeln!)
+            const highRateHours = Math.min(hours, 4); // Erste 4 Stunden zu 350€
+            const lowRateHours = Math.max(hours - 4, 0); // Rest zu 300€
+            dayAmount = (highRateHours * 350) + (lowRateHours * 300);
+            dayDescription = `${date}: ${hours} Stunden (${highRateHours}x350€ + ${lowRateHours}x300€ = ${dayAmount} €)`;
+        }
+
+        totalAmount += dayAmount;
+        invoiceText += `• ${dayDescription}\n`;
+    }
+
+    // MwSt. berechnen
+    const taxRate = 0.19;
+    const taxAmount = totalAmount * taxRate;
+    const totalWithTax = totalAmount + taxAmount;
+
+    invoiceText += `
 ---
 Zwischensumme:   ${totalAmount.toFixed(2).replace('.', ',')} €
 + 19% MwSt.:      ${taxAmount.toFixed(2).replace('.', ',')} €
@@ -559,10 +589,14 @@ Gesamtbetrag:    ${totalWithTax.toFixed(2).replace('.', ',')} €
 Zahlungsbedingungen: 14 Tage netto
 Konto: DE89 3704 0044 0532 0130 00
 BLZ: 37040044
-    `;
 
-            alert(invoiceText);
-        }
+---
+Bitte überweisen Sie den Gesamtbetrag unter Angabe der Rechnungsnummer.
+`;
+
+    // Rechnung anzeigen
+    document.getElementById('invoiceOutput').textContent = invoiceText;
+}
 
         // Daten von GitHub importieren
         function importDataFromGitHub() {
