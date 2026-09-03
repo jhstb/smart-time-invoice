@@ -5,182 +5,212 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Time & Invoice Suite</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            line-height: 1.6;
-            color: #333;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        select, input, textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1, h2 { color: #333; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        select, input, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
         button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-right: 10px;
+            background-color: #4CAF50; color: white; padding: 10px 15px; border: none;
+            border-radius: 4px; cursor: pointer; font-size: 16px; margin-right: 10px;
         }
-        button:hover {
-            background-color: #45a049;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
+        button:hover { background-color: #45a049; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .hidden { display: none; }
+        .section { margin-bottom: 30px; border: 1px solid #eee; padding: 15px; border-radius: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Smart Time & Invoice Suite</h1>
 
-        <h2>Stundenerfassung</h2>
-        <div class="form-group">
-            <label for="project">Projekt:</label>
-            <select id="project" onchange="updateCustomerDropdown()">
-                <option value="">-- Projekt auswählen --</option>
-            </select>
+        <!-- Projektverwaltung -->
+        <div class="section">
+            <h2>Projektverwaltung</h2>
+            <div class="form-group">
+                <label for="newProjectName">Neues Projekt:</label>
+                <input type="text" id="newProjectName" placeholder="Projektname">
+            </div>
+            <div class="form-group">
+                <label>Zugehörige Kunden:</label>
+                <div id="newProjectCustomers">
+                    <!-- Kunden-Checkboxen werden hier dynamisch eingefügt -->
+                </div>
+            </div>
+            <button onclick="addProject()">Projekt hinzufügen</button>
         </div>
 
-        <div class="form-group">
-            <label for="customer">Kunde:</label>
-            <select id="customer" disabled>
-                <option value="">-- Kunde auswählen --</option>
-            </select>
+        <!-- Kundenverwaltung -->
+        <div class="section">
+            <h2>Kundenverwaltung</h2>
+            <div class="form-group">
+                <label for="newCustomerName">Neuer Kunde:</label>
+                <input type="text" id="newCustomerName" placeholder="Kundenname">
+            </div>
+            <button onclick="addCustomer()">Kunde hinzufügen</button>
         </div>
 
-        <div class="form-group">
-            <label for="description">Beschreibung:</label>
-            <input type="text" id="description">
+        <!-- Stundenerfassung -->
+        <div class="section">
+            <h2>Stundenerfassung</h2>
+            <div class="form-group">
+                <label for="project">Projekt:</label>
+                <select id="project" onchange="updateCustomerDropdown()">
+                    <option value="">-- Projekt auswählen --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="customer">Kunde:</label>
+                <select id="customer" disabled>
+                    <option value="">-- Kunde auswählen --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="description">Beschreibung:</label>
+                <input type="text" id="description">
+            </div>
+            <div class="form-group">
+                <label for="hours">Stunden:</label>
+                <input type="number" id="hours" step="0.25" min="0" value="0">
+            </div>
+            <button onclick="addEntry()">Stunde hinzufügen</button>
         </div>
 
-        <div class="form-group">
-            <label for="hours">Stunden:</label>
-            <input type="number" id="hours" step="0.25" min="0">
+        <!-- Datenverwaltung -->
+        <div class="section">
+            <button onclick="importDataFromGitHub()">Daten von GitHub importieren</button>
+            <button onclick="exportDataToGitHub()">Daten nach GitHub exportieren</button>
         </div>
 
-        <button onclick="addEntry()">Stunde hinzufügen</button>
-        <button onclick="importDataFromGitHub()">Daten von GitHub importieren</button>
-        <button onclick="exportDataToGitHub()">Daten nach GitHub exportieren</button>
-
-        <h2>Erfasste Stunden</h2>
-        <table id="timeTable">
-            <thead>
-                <tr>
-                    <th>Datum</th>
-                    <th>Projekt</th>
-                    <th>Kunde</th>
-                    <th>Beschreibung</th>
-                    <th>Stunden</th>
-                    <th>Aktion</th>
-                </tr>
-            </thead>
-            <tbody id="timeTableBody">
-            </tbody>
-        </table>
-
-        <h2>Rechnung erstellen</h2>
-        <div class="form-group">
-            <label for="invoiceCustomer">Kunde:</label>
-            <select id="invoiceCustomer">
-                <option value="">-- Kunde auswählen --</option>
-            </select>
+        <!-- Erfasste Stunden -->
+        <div class="section">
+            <h2>Erfasste Stunden</h2>
+            <table id="timeTable">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Projekt</th>
+                        <th>Kunde</th>
+                        <th>Beschreibung</th>
+                        <th>Stunden</th>
+                        <th>Aktion</th>
+                    </tr>
+                </thead>
+                <tbody id="timeTableBody"></tbody>
+            </table>
         </div>
 
-        <div class="form-group">
-            <label for="invoiceProject">Projekt:</label>
-            <select id="invoiceProject" onchange="updateInvoiceCustomerDropdown()">
-                <option value="">-- Projekt auswählen --</option>
-            </select>
+        <!-- Rechnung erstellen -->
+        <div class="section">
+            <h2>Rechnung erstellen</h2>
+            <div class="form-group">
+                <label for="invoiceCustomer">Kunde:</label>
+                <select id="invoiceCustomer">
+                    <option value="">-- Kunde auswählen --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="invoiceProject">Projekt:</label>
+                <select id="invoiceProject" onchange="updateInvoiceCustomerDropdown()">
+                    <option value="">-- Projekt auswählen --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="invoiceMonth">Monat:</label>
+                <input type="month" id="invoiceMonth">
+            </div>
+            <button onclick="generateInvoice()">Rechnung generieren</button>
         </div>
-
-        <div class="form-group">
-            <label for="invoiceMonth">Monat:</label>
-            <input type="month" id="invoiceMonth">
-        </div>
-
-        <button onclick="generateInvoice()">Rechnung generieren</button>
     </div>
 
     <script>
-        // Standard-Daten
-        let projects = [
-            { id: 1, name: "Wissenschafts- und Kulturpark Schwielowsee", customerIds: [1] },
-            { id: 2, name: "Schwarze Pumpe", customerIds: [2, 3] }
-        ];
-        let customers = [
-            { id: 1, name: "Gegenbauer" },
-            { id: 2, name: "Christine Herntier" },
-            { id: 3, name: "Zweckverband" }
-        ];
+        // Dateninitialisierung
+        let projects = [];
+        let customers = [];
         let timeEntries = [];
+        let nextProjectId = 1;
+        let nextCustomerId = 1;
 
         // Daten aus localStorage laden
         function loadLocalData() {
-            const savedTimeEntries = localStorage.getItem('smartTimeData');
-            const savedProjects = localStorage.getItem('projects');
-            const savedCustomers = localStorage.getItem('customers');
+            const savedData = {
+                timeEntries: JSON.parse(localStorage.getItem('smartTimeData') || '[]'),
+                projects: JSON.parse(localStorage.getItem('projects') || '[]'),
+                customers: JSON.parse(localStorage.getItem('customers') || '[]'),
+                nextProjectId: parseInt(localStorage.getItem('nextProjectId') || '1'),
+                nextCustomerId: parseInt(localStorage.getItem('nextCustomerId') || '1')
+            };
 
-            if (savedTimeEntries) timeEntries = JSON.parse(savedTimeEntries);
-            if (savedProjects) projects = JSON.parse(savedProjects);
-            if (savedCustomers) customers = JSON.parse(savedCustomers);
+            if (savedData.projects.length > 0) {
+                projects = savedData.projects;
+                nextProjectId = savedData.nextProjectId;
+            } else {
+                // Standard-Projekte, falls keine vorhanden
+                projects = [
+                    { id: 1, name: "Wissenschafts- und Kulturpark Schwielowsee", customerIds: [1] },
+                    { id: 2, name: "Schwarze Pumpe", customerIds: [2, 3] },
+                    { id: 3, name: "Projekt 3", customerIds: [1, 2] },
+                    { id: 4, name: "Projekt 4", customerIds: [3] }
+                ];
+                nextProjectId = 5;
+            }
+
+            if (savedData.customers.length > 0) {
+                customers = savedData.customers;
+                nextCustomerId = savedData.nextCustomerId;
+            } else {
+                // Standard-Kunden, falls keine vorhanden
+                customers = [
+                    { id: 1, name: "Gegenbauer" },
+                    { id: 2, name: "Christine Herntier" },
+                    { id: 3, name: "Zweckverband" }
+                ];
+                nextCustomerId = 4;
+            }
+
+            timeEntries = savedData.timeEntries;
         }
 
-        // Dropdown für Projekte füllen
+        // Alle Dropdowns aktualisieren
+        function updateAllDropdowns() {
+            populateProjectDropdowns();
+            populateCustomerDropdowns();
+            updateTable();
+        }
+
+        // Projekt-Dropdowns füllen
         function populateProjectDropdowns() {
             const projectSelect = document.getElementById('project');
             const invoiceProjectSelect = document.getElementById('invoiceProject');
 
-            projectSelect.innerHTML = '<option value="">-- Projekt auswählen --</option>';
-            projects.forEach(project => {
-                const option = document.createElement('option');
-                option.value = project.id;
-                option.textContent = project.name;
-                projectSelect.appendChild(option);
-            });
-
-            invoiceProjectSelect.innerHTML = '<option value="">-- Projekt auswählen --</option>';
-            projects.forEach(project => {
-                const option = document.createElement('option');
-                option.value = project.id;
-                option.textContent = project.name;
-                invoiceProjectSelect.appendChild(option);
+            [projectSelect, invoiceProjectSelect].forEach(select => {
+                select.innerHTML = '<option value="">-- Projekt auswählen --</option>';
+                projects.forEach(project => {
+                    const option = document.createElement('option');
+                    option.value = project.id;
+                    option.textContent = project.name;
+                    select.appendChild(option);
+                });
             });
         }
 
-        // Dropdown für Kunden füllen (basierend auf ausgewähltem Projekt)
+        // Kunden-Dropdowns füllen
+        function populateCustomerDropdowns() {
+            const customerSelect = document.getElementById('invoiceCustomer');
+
+            customerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
+            customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.id;
+                option.textContent = customer.name;
+                customerSelect.appendChild(option);
+            });
+        }
+
+        // Kunden-Dropdown für Stundenerfassung aktualisieren (basierend auf Projekt)
         function updateCustomerDropdown() {
             const projectId = parseInt(document.getElementById('project').value);
             const customerSelect = document.getElementById('customer');
@@ -211,7 +241,7 @@
             customerSelect.disabled = false;
         }
 
-        // Dropdown für Rechnungs-Kunden füllen (basierend auf ausgewähltem Projekt)
+        // Kunden-Dropdown für Rechnungserstellung aktualisieren
         function updateInvoiceCustomerDropdown() {
             const projectId = parseInt(document.getElementById('invoiceProject').value);
             const customerSelect = document.getElementById('invoiceCustomer');
@@ -239,7 +269,94 @@
             });
         }
 
-        // Tabelle mit den erfassten Stunden aktualisieren
+        // Checkboxen für neue Projekte erstellen
+        function updateNewProjectCustomers() {
+            const container = document.getElementById('newProjectCustomers');
+            container.innerHTML = '';
+
+            customers.forEach(customer => {
+                const div = document.createElement('div');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `customer_${customer.id}`;
+                checkbox.value = customer.id;
+
+                const label = document.createElement('label');
+                label.htmlFor = `customer_${customer.id}`;
+                label.textContent = customer.name;
+
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                container.appendChild(div);
+            });
+        }
+
+        // Neues Projekt hinzufügen
+        function addProject() {
+            const name = document.getElementById('newProjectName').value.trim();
+            if (!name) {
+                alert('Bitte geben Sie einen Projektnamen ein!');
+                return;
+            }
+
+            // Kunden-IDs aus Checkboxen sammeln
+            const customerIds = [];
+            customers.forEach(customer => {
+                const checkbox = document.getElementById(`customer_${customer.id}`);
+                if (checkbox && checkbox.checked) {
+                    customerIds.push(customer.id);
+                }
+            });
+
+            if (customerIds.length === 0) {
+                alert('Bitte wählen Sie mindestens einen Kunden für das Projekt aus!');
+                return;
+            }
+
+            const newProject = {
+                id: nextProjectId++,
+                name: name,
+                customerIds: customerIds
+            };
+
+            projects.push(newProject);
+            localStorage.setItem('projects', JSON.stringify(projects));
+            localStorage.setItem('nextProjectId', nextProjectId);
+
+            // Felder zurücksetzen
+            document.getElementById('newProjectName').value = '';
+            updateNewProjectCustomers();
+
+            alert(`Projekt "${name}" wurde hinzugefügt!`);
+            updateAllDropdowns();
+        }
+
+        // Neuer Kunde hinzufügen
+        function addCustomer() {
+            const name = document.getElementById('newCustomerName').value.trim();
+            if (!name) {
+                alert('Bitte geben Sie einen Kundennamen ein!');
+                return;
+            }
+
+            const newCustomer = {
+                id: nextCustomerId++,
+                name: name
+            };
+
+            customers.push(newCustomer);
+            localStorage.setItem('customers', JSON.stringify(customers));
+            localStorage.setItem('nextCustomerId', nextCustomerId);
+
+            // Felder zurücksetzen
+            document.getElementById('newCustomerName').value = '';
+            updateNewProjectCustomers();
+
+            alert(`Kunde "${name}" wurde hinzugefügt!`);
+            updateAllDropdowns();
+        }
+
+        // Tabelle aktualisieren
         function updateTable() {
             const tableBody = document.getElementById('timeTableBody');
             tableBody.innerHTML = '';
@@ -258,23 +375,23 @@
             });
         }
 
-        // Projektname aus ID holen
+        // Projektname aus ID
         function getProjectName(projectId) {
             const project = projects.find(p => p.id === projectId);
             return project ? project.name : 'Unbekannt';
         }
 
-        // Kundenname aus ID holen
+        // Kundenname aus ID
         function getCustomerName(customerId) {
             const customer = customers.find(c => c.id === customerId);
             return customer ? customer.name : 'Unbekannt';
         }
 
-        // Neue Stundeneinträge hinzufügen
+        // Stundeneintrag hinzufügen
         function addEntry() {
             const projectId = parseInt(document.getElementById('project').value);
             const customerId = parseInt(document.getElementById('customer').value);
-            const description = document.getElementById('description').value;
+            const description = document.getElementById('description').value.trim();
             const hours = parseFloat(document.getElementById('hours').value);
 
             if (!projectId || !customerId || !description || isNaN(hours) || hours <= 0) {
@@ -296,7 +413,7 @@
 
             // Felder zurücksetzen
             document.getElementById('description').value = '';
-            document.getElementById('hours').value = '';
+            document.getElementById('hours').value = '0';
             document.getElementById('customer').value = '';
         }
 
@@ -362,7 +479,7 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Daten aus GitHub laden und validieren
+                    // Daten validieren und laden
                     if (data.projects && data.projects.length > 0) {
                         projects = data.projects;
                     }
@@ -370,19 +487,25 @@
                         customers = data.customers;
                     }
                     if (data.timeEntries) {
-                        timeEntries = data.timeEntries.filter(entry =>
-                            entry.hours && entry.hours > 0
-                        );
+                        timeEntries = data.timeEntries.filter(entry => entry.hours > 0);
+                    }
+                    if (data.nextProjectId) {
+                        nextProjectId = data.nextProjectId;
+                    }
+                    if (data.nextCustomerId) {
+                        nextCustomerId = data.nextCustomerId;
                     }
 
                     // In localStorage speichern
                     localStorage.setItem('smartTimeData', JSON.stringify(timeEntries));
                     localStorage.setItem('projects', JSON.stringify(projects));
                     localStorage.setItem('customers', JSON.stringify(customers));
+                    localStorage.setItem('nextProjectId', nextProjectId);
+                    localStorage.setItem('nextCustomerId', nextCustomerId);
 
                     alert('Daten erfolgreich von GitHub importiert!');
-                    populateProjectDropdowns();
-                    updateTable();
+                    updateAllDropdowns();
+                    updateNewProjectCustomers();
                 })
                 .catch(error => {
                     alert('Fehler beim Importieren von GitHub: ' + error.message);
@@ -400,7 +523,9 @@
             const data = {
                 timeEntries: timeEntries,
                 projects: projects,
-                customers: customers
+                customers: customers,
+                nextProjectId: nextProjectId,
+                nextCustomerId: nextCustomerId
             };
 
             const githubApiUrl = 'https://api.github.com/repos/jhstb/smart-time-invoice/contents/smart_time_data.json';
@@ -459,8 +584,8 @@
 
         // Initialisierung
         loadLocalData();
-        populateProjectDropdowns();
-        updateTable();
+        updateAllDropdowns();
+        updateNewProjectCustomers();
     </script>
 </body>
 </html>
