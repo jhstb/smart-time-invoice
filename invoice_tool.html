@@ -255,36 +255,35 @@
         }
 
         // Kunden-Dropdown für Stundenerfassung aktualisieren (basierend auf Projekt)
-        function updateCustomerDropdown() {
-            const projectId = parseInt(document.getElementById('project').value);
-            const customerSelect = document.getElementById('customer');
+function updateCustomerDropdown() {
+    const projectId = parseInt(document.getElementById('project').value);
+    const customerSelect = document.getElementById('customer');
 
-            if (!projectId) {
-                customerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
-                customerSelect.disabled = true;
-                return;
-            }
+    // Alle Kunden des ausgewählten Projekts finden
+    const project = projects.find(p => p.id === projectId);
 
-            const project = projects.find(p => p.id === projectId);
-            if (!project) {
-                customerSelect.innerHTML = '<option value="">-- Keine Kunden für dieses Projekt --</option>';
-                customerSelect.disabled = true;
-                return;
-            }
+    if (!project) {
+        customerSelect.innerHTML = '<option value="">-- Kein Projekt ausgewählt --</option>';
+        customerSelect.disabled = true;
+        return;
+    }
 
-            customerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
-            project.customerIds.forEach(customerId => {
-                const customer = customers.find(c => c.id === customerId);
-                if (customer) {
-                    const option = document.createElement('option');
-                    option.value = customer.id;
-                    option.textContent = customer.name;
-                    customerSelect.appendChild(option);
-                }
-            });
-            customerSelect.disabled = false;
+    // Dropdown zurücksetzen
+    customerSelect.innerHTML = '<option value="">-- Kunde auswählen --</option>';
+
+    // Nur die Kunden anzeigen, die zum Projekt gehören
+    project.customerIds.forEach(customerId => {
+        const customer = customers.find(c => c.id === customerId);
+        if (customer) {
+            const option = document.createElement('option');
+            option.value = customer.id;
+            option.textContent = customer.name;
+            customerSelect.appendChild(option);
         }
+    });
 
+    customerSelect.disabled = false;
+}
         // Kunden-Dropdown für Rechnungserstellung aktualisieren
         function updateInvoiceCustomerDropdown() {
             const projectId = parseInt(document.getElementById('invoiceProject').value);
