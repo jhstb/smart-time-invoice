@@ -1,6 +1,27 @@
 {
-  "version": 3,
-  "exportedAt": "2026-09-07T06:32:17.324Z",
+  "timeEntries": [
+    {
+      "date": "3.9.2026",
+      "projectId": 2,
+      "customerId": 2,
+      "description": "test",
+      "hours": 5
+    },
+    {
+      "date": "3.9.2026",
+      "projectId": 1,
+      "customerId": 1,
+      "description": "Test",
+      "hours": 3
+    },
+    {
+      "date": "3.9.2026",
+      "projectId": 1,
+      "customerId": 1,
+      "description": "Brochüre",
+      "hours": 14
+    }
+  ],
   "projects": [
     {
       "id": 1,
@@ -18,66 +39,32 @@
       ]
     },
     {
-      "id": 3,
-      "name": "Projekt 3",
+      "id": 1,
+      "name": "Schwarze Pumpe",
       "customerIds": [
-        1,
         2
-      ]
-    },
-    {
-      "id": 4,
-      "name": "Projekt 4",
-      "customerIds": [
-        3
-      ]
-    },
-    {
-      "id": 5,
-      "name": "4D Cell",
-      "customerIds": [
-        4
       ]
     }
   ],
   "customers": [
     {
       "id": 1,
-      "name": "Gegenbauer",
-      "address": "Musterstraße 1\n10115 Berlin"
+      "name": "Gegenbauer"
     },
     {
       "id": 2,
-      "name": "Christine Herntier",
-      "address": "Beispielweg 2\n10117 Berlin"
+      "name": "Christine Herntier"
     },
     {
       "id": 3,
-      "name": "Zweckverband",
-      "address": "Testallee 3\n10119 Berlin"
+      "name": "Zweckverband"
     },
     {
-      "id": 4,
-      "name": "Joh Schöneberg",
-      "address": "Demostraße 4\n14542 Schwielowsee"
-    }
-  ],
-  "timeEntries": [
-    {
       "id": 1,
-      "date": "2026-09-07",
-      "projectId": 2,
-      "customerId": 2,
-      "project": "Schwarze Pumpe",
-      "customer": "Christine Herntier",
-      "description": "Vorbesprechung",
-      "hours": 4,
-      "rate": 350,
-      "invoiceNumber": "RG-2026-09-024"
+      "name": "Joh Schöneberg"
     }
   ],
-  "nextProjectId": 6,
-  "nextCustomerId": 5,
-  "nextEntryId": 2,
+  "nextProjectId": 2,
+  "nextCustomerId": 2,
   "nextInvoiceNumber": 25
 }
