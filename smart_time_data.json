@@ -1,6 +1,37 @@
 {
-  "version": 3,
-  "exportedAt": "2026-09-07T08:45:58.637Z",
+  "timeEntries": [
+    {
+      "id": 1,
+      "date": "2026-09-07",
+      "projectId": 1,
+      "customerId": 1,
+      "project": "Wissenschafts- und Kulturpark Schwielowsee",
+      "customer": "Gegenbauer",
+      "description": "power",
+      "hours": 2,
+      "rate": 350,
+      "invoiceNumber": "RG-2026-09-025"
+    },
+    {
+      "id": 2,
+      "date": "2026-09-04",
+      "projectId": 1,
+      "customerId": 1,
+      "project": "Wissenschafts- und Kulturpark Schwielowsee",
+      "customer": "Gegenbauer",
+      "description": "tagung",
+      "hours": 10,
+      "rate": 350,
+      "invoiceNumber": "RG-2026-09-025"
+    },
+    {
+      "date": "7.9.2026",
+      "projectId": 2,
+      "customerId": 3,
+      "description": "Präsentation",
+      "hours": 4
+    }
+  ],
   "projects": [
     {
       "id": 1,
@@ -47,34 +78,7 @@
       "address": ""
     }
   ],
-  "timeEntries": [
-    {
-      "id": 1,
-      "date": "2026-09-07",
-      "projectId": 1,
-      "customerId": 1,
-      "project": "Wissenschafts- und Kulturpark Schwielowsee",
-      "customer": "Gegenbauer",
-      "description": "power",
-      "hours": 2,
-      "rate": 350,
-      "invoiceNumber": "RG-2026-09-025"
-    },
-    {
-      "id": 2,
-      "date": "2026-09-04",
-      "projectId": 1,
-      "customerId": 1,
-      "project": "Wissenschafts- und Kulturpark Schwielowsee",
-      "customer": "Gegenbauer",
-      "description": "tagung",
-      "hours": 10,
-      "rate": 350,
-      "invoiceNumber": "RG-2026-09-025"
-    }
-  ],
   "nextProjectId": 3,
   "nextCustomerId": 4,
-  "nextEntryId": 3,
   "nextInvoiceNumber": 26
 }
