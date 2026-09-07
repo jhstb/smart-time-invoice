@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Time & Invoice Suite</title>
+<style>
+    * { box-sizing: border-box; }
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f5f7fa;
+        color: #263238;
+        line-height: 1.5;
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    h1 { margin-top: 0; }
+    h2 { margin-top: 30px; }
+    .card {
+        background: #fff;
+        border: 1px solid #dfe4ea;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+    .form-group { margin-bottom: 14px; }
+    label { display:block; font-weight: 700; margin-bottom: 6px; }
+    input, select, textarea {
+        width: 100%;
+        padding: 9px 10px;
+        border: 1px solid #cfd6dd;
+        border-radius: 6px;
+        font: inherit;
+        background: #fff;
+    }
+    textarea { resize: vertical; }
+    button {
+        border: 0;
+        border-radius: 6px;
+        padding: 9px 13px;
+        cursor: pointer;
+        background: #2e7d32;
+        color: #fff;
+        margin: 3px 5px 3px 0;
+    }
+    button:hover { filter: brightness(.94); }
+    button.secondary { background: #546e7a; }
+    button.warning { background: #ef6c00; }
+    button.danger { background: #c62828; }
+    button.info { background: #1565c0; }
+    button.small { padding: 6px 9px; font-size: .9rem; }
+    .muted { color: #667085; font-size: .92rem; }
+    .success, .error, .warning-box {
+        padding: 10px 12px;
+        border-radius: 6px;
+        margin: 10px 0;
+    }
+    .success { background:#e8f5e9; color:#1b5e20; }
+    .error { background:#ffebee; color:#b71c1c; }
+    .warning-box { background:#fff3e0; color:#e65100; }
+    .customer-checks {
+        display:grid;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        gap: 6px 16px;
+        border:1px solid #e0e0e0;
+        padding:10px;
+        border-radius:6px;
+    }
+    .customer-checks label {
+        font-weight: normal;
+        display:flex;
+        gap:8px;
+        align-items:center;
+        margin:0;
+    }
+    .customer-checks input { width:auto; }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { border:1px solid #e0e0e0; padding:8px; text-align:left; vertical-align:top; }
+    th { background:#f1f3f5; }
+    .actions { white-space:nowrap; }
+    .empty { text-align:center; color:#777; padding:20px; }
+    .rate-summary {
+        background:#f8f9fa;
+        border:1px solid #e0e0e0;
+        border-radius:6px;
+        padding:10px 12px;
+    }
+    .invoice-preview {
+        white-space:pre-wrap;
+        background:#fafafa;
+        border:1px solid #ddd;
+        border-radius:8px;
+        padding:16px;
+        font-family: "Courier New", monospace;
+        overflow:auto;
+    }
+    .modal {
+        display:none;
+        position:fixed;
+        z-index:1000;
+        inset:0;
+        background:rgba(0,0,0,.45);
+        padding:30px 15px;
+        overflow:auto;
+    }
+    .modal-content {
+        max-width:850px;
+        margin:auto;
+        background:#fff;
+        border-radius:10px;
+        padding:20px;
+    }
+    .modal-header {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:10px;
+    }
+    .close { font-size:28px; cursor:pointer; color:#777; }
+    .invoice-paper {
+        max-width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto;
+        padding: 24mm 20mm;
+        background:#fff;
+        color:#222;
+    }
+    .invoice-header {
+        display:flex;
+        justify-content:space-between;
+        gap:30px;
+        margin-bottom:30px;
+    }
+    .invoice-header > div { width:50%; }
+    .invoice-meta { text-align:right; }
+    .invoice-table { margin-top:20px; table-layout:fixed; }
+    .invoice-table th:nth-child(1) { width:7%; }
+    .invoice-table th:nth-child(2) { width:16%; }
+    .invoice-table th:nth-child(3) { width:33%; }
+    .invoice-table th:nth-child(4) { width:10%; }
+    .invoice-table th:nth-child(5) { width:17%; }
+    .invoice-table th:nth-child(6) { width:14%; }
+    .invoice-table th, .invoice-table td { padding:8px; }
+    .invoice-totals {
+        margin-left:auto;
+        max-width:330px;
+        margin-top:20px;
+    }
+    .invoice-totals div {
+        display:flex;
+        justify-content:space-between;
+        padding:4px 0;
+    }
+    .invoice-total {
+        font-weight:bold;
+        border-top:2px solid #222;
+        margin-top:6px;
+        padding-top:8px !important;
+    }
+    .bank-details { margin-top:45px; font-size:.92rem; border-top:1px solid #ddd; padding-top:16px; }
+    .invoice-paper h2 { font-size:1.6rem; margin:28px 0 10px; }
+    .no-print {}
+    @media (max-width: 760px) {
+        .grid, .customer-checks { grid-template-columns:1fr; }
+        .invoice-header { display:block; }
+        .invoice-header > div { width:100%; margin-bottom:18px; }
+        .invoice-meta { text-align:left; }
+    }
+    @media print {
+        @page { size: A4; margin: 12mm; }
+
+        /* Beim PDF-/Druckvorgang wird ausschließlich die Rechnung ausgegeben.
+           Die restliche App verschwindet vollständig aus dem Drucklayout. */
+        html, body {
+            background:#fff !important;
+            margin:0 !important;
+            padding:0 !important;
+        }
+        body > *:not(#invoiceModal) {
+            display:none !important;
+        }
+        #invoiceModal {
+            display:block !important;
+            position:static !important;
+            width:auto !important;
+            min-height:0 !important;
+            padding:0 !important;
+            margin:0 !important;
+            background:#fff !important;
+            overflow:visible !important;
+        }
+        #invoiceModal .modal-content {
+            display:block !important;
+            width:auto !important;
+            max-width:none !important;
+            min-height:0 !important;
+            margin:0 !important;
+            padding:0 !important;
+            border:0 !important;
+            border-radius:0 !important;
+            box-shadow:none !important;
+            overflow:visible !important;
+        }
+        .no-print, .modal-header, .modal-actions {
+            display:none !important;
+        }
+        #invoiceOutput {
+            display:block !important;
+            margin:0 !important;
+            padding:0 !important;
+        }
+        .invoice-paper {
+            display:block !important;
+            width:auto !important;
+            max-width:none !important;
+            margin:0 !important;
+            padding:0 !important;
+            box-shadow:none !important;
+            border:0 !important;
+            overflow:visible !important;
+        }
+        .invoice-paper .invoice-table {
+            width:100%;
+            border-collapse:collapse;
+        }
+        .invoice-paper thead {
+            display:table-header-group;
+        }
+        .invoice-paper tr,
+        .invoice-paper .invoice-totals,
+        .invoice-paper .bank-details {
+            break-inside:avoid;
+            page-break-inside:avoid;
+        }
+        .invoice-paper .bank-details {
+            margin-top:30px;
+        }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Smart Time & Invoice Suite</h1>
+    <p class="muted">Schritt 1: stabiles Datenmodell, echte Datumswerte, Bearbeitung, Ratenlogik und robuste Rechnungsnummern.</p>
+
+    <div id="status"></div>
+
+    <section class="card">
+        <h2>Projektverwaltung</h2>
+        <div class="grid">
+            <div class="form-group">
+                <label for="newProjectName">Projektname</label>
+                <input id="newProjectName" type="text" placeholder="z. B. Schwarze Pumpe">
+            </div>
+            <div class="form-group">
+                <label>Kunden zuordnen</label>
+                <div id="newProjectCustomers" class="customer-checks"></div>
+            </div>
+        </div>
+        <button onclick="addProject()">Projekt anlegen</button>
+
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Projekt</th><th>Kunden</th><th>Aktionen</th></tr></thead>
+                <tbody id="projectsBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Kundenverwaltung</h2>
+        <div class="grid">
+            <div class="form-group">
+                <label for="newCustomerName">Kundenname</label>
+                <input id="newCustomerName" type="text" placeholder="Kundenname">
+            </div>
+            <div class="form-group">
+                <label for="newCustomerAddress">Adresse</label>
+                <textarea id="newCustomerAddress" rows="3" placeholder="Straße und Hausnummer&#10;PLZ Ort"></textarea>
+            </div>
+        </div>
+        <button onclick="addCustomer()">Kunden anlegen</button>
+
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Kunde</th><th>Adresse</th><th>Aktionen</th></tr></thead>
+                <tbody id="customersBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Stundenerfassung</h2>
+        <div class="grid">
+            <div>
+                <div class="form-group">
+                    <label for="project">Projekt</label>
+                    <select id="project" onchange="updateCustomerDropdown()">
+                        <option value="">-- Projekt auswählen --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="customer">Kunde</label>
+                    <select id="customer">
+                        <option value="">-- Kunde auswählen --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="date">Datum</label>
+                    <input type="date" id="date">
+                </div>
+            </div>
+            <div>
+                <div class="form-group">
+                    <label for="description">Beschreibung</label>
+                    <textarea id="description" rows="5" placeholder="Was wurde geleistet?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="hours">Stunden</label>
+                    <input type="number" id="hours" step="0.25" min="0.25" placeholder="z. B. 4.5">
+                </div>
+                <div class="form-group">
+                    <label for="rate">Stundensatz</label>
+                    <select id="rate">
+                        <option value="350">350 € / h</option>
+                        <option value="300">300 € / h</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="rate-summary">
+            <strong>Abrechnungslogik:</strong>
+            Je Zeiteintrag: 300 €/h oder 350 €/h · bei mehr als 8 h an einem Tag: 3.000 € Tagessatz.
+            <br><span class="muted">Der gewählte Stundensatz wird im Zeiteintrag gespeichert. Bei mehr als 8 h an einem Tag ersetzt der Tagessatz von 3.000 € die Stundenabrechnung dieses Tages.</span>
+        </div>
+        <br>
+        <button id="entrySaveButton" onclick="saveEntry()">Stunde hinzufügen</button>
+        <button id="entryCancelButton" class="secondary" onclick="cancelEntryEdit()" style="display:none">Bearbeitung abbrechen</button>
+    </section>
+
+    <section class="card">
+        <h2>Datenverwaltung</h2>
+        <button class="info" onclick="exportData()">JSON exportieren</button>
+        <button class="secondary" onclick="document.getElementById('fileInput').click()">JSON importieren</button>
+        <input id="fileInput" type="file" accept=".json,application/json" style="display:none" onchange="importData(event)">
+        <p class="muted">Der Export enthält Projekte, Kunden, Zeiteinträge, Rechnungsnummern und die Datenmodell-Version.</p>
+    </section>
+
+    <section class="card">
+        <h2>GitHub-Synchronisation</h2>
+        <p class="muted">Optional: JSON-Daten direkt aus einem GitHub-Repository laden oder dorthin speichern. Der Personal Access Token wird nur für diese Browser-Sitzung im sessionStorage gehalten.</p>
+        <p class="muted">Voreingestellt: <strong>jhstb / smart-time-invoice / smart_time_data.json / main</strong>. Für Import und Export wird weiterhin dein GitHub Personal Access Token benötigt.</p>
+        <div class="grid">
+            <div>
+                <div class="form-group"><label for="githubOwner">Repository-Eigentümer</label><input id="githubOwner" type="text" value="jhstb" placeholder="z. B. jhstb"></div>
+                <div class="form-group"><label for="githubRepo">Repository</label><input id="githubRepo" type="text" value="smart-time-invoice" placeholder="z. B. smart-time-invoice"></div>
+            </div>
+            <div>
+                <div class="form-group"><label for="githubPath">Dateipfad</label><input id="githubPath" type="text" value="smart_time_data.json"></div>
+                <div class="form-group"><label for="githubBranch">Branch</label><input id="githubBranch" type="text" value="main"></div>
+            </div>
+        </div>
+        <div class="form-group"><label for="githubToken">GitHub Personal Access Token</label><input id="githubToken" type="password" autocomplete="off" placeholder="wird nicht dauerhaft gespeichert"></div>
+        <button class="info" onclick="importDataFromGitHub()">Von GitHub importieren</button>
+        <button onclick="exportDataToGitHub()">Nach GitHub exportieren</button>
+        <button class="secondary" onclick="clearGitHubToken()">Token aus Sitzung löschen</button>
+        <p id="githubStatus" class="muted"></p>
+    </section>
+
+    <section class="card">
+        <h2>Erfasste Stunden</h2>
+        <div class="grid">
+            <div class="form-group">
+                <label for="entryMonthFilter">Monat filtern</label>
+                <input type="month" id="entryMonthFilter" onchange="updateTimeTable()">
+            </div>
+            <div class="form-group">
+                <label>&nbsp;</label>
+                <button class="secondary" onclick="clearMonthFilter()">Filter zurücksetzen</button>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Projekt</th>
+                        <th>Kunde</th>
+                        <th>Beschreibung</th>
+                        <th>Stunden</th>
+                        <th>Rate</th>
+                        <th>Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody id="timeEntriesBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Rechnungseinstellungen</h2>
+        <p class="muted">Diese Angaben werden lokal gespeichert und automatisch auf neuen Rechnungen verwendet. Bitte vor dem produktiven Einsatz vollständig prüfen.</p>
+        <div class="grid">
+            <div>
+                <div class="form-group"><label for="settingsSenderName">Absender / Name</label><input id="settingsSenderName" type="text"></div>
+                <div class="form-group"><label for="settingsSenderAddress">Absenderadresse</label><textarea id="settingsSenderAddress" rows="3"></textarea></div>
+                <div class="form-group"><label for="settingsTaxNumber">Steuernummer</label><input id="settingsTaxNumber" type="text"></div>
+                <div class="form-group"><label for="settingsPhone">Telefon</label><input id="settingsPhone" type="text"></div>
+                <div class="form-group"><label for="settingsEmail">E-Mail</label><input id="settingsEmail" type="email"></div>
+            </div>
+            <div>
+                <div class="form-group"><label for="settingsBank">Bank</label><input id="settingsBank" type="text"></div>
+                <div class="form-group"><label for="settingsIban">IBAN</label><input id="settingsIban" type="text"></div>
+                <div class="form-group"><label for="settingsBic">BIC</label><input id="settingsBic" type="text"></div>
+                <div class="form-group"><label for="settingsAccountHolder">Kontoinhaber</label><input id="settingsAccountHolder" type="text"></div>
+                <div class="form-group"><label for="settingsPaymentTerms">Zahlungshinweis</label><textarea id="settingsPaymentTerms" rows="3"></textarea></div>
+            </div>
+        </div>
+        <button onclick="saveInvoiceSettings()">Rechnungseinstellungen speichern</button>
+        <button class="secondary" onclick="resetInvoiceSettings()">Zurücksetzen</button>
+    </section>
+
+    <section class="card">
+        <h2>Rechnung erstellen</h2>
+        <div class="grid">
+            <div class="form-group">
+                <label for="invoiceProject">Projekt</label>
+                <select id="invoiceProject" onchange="updateInvoiceCustomerDropdown()">
+                    <option value="">-- Projekt auswählen --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="invoiceCustomer">Kunde</label>
+                <select id="invoiceCustomer">
+                    <option value="">-- Kunde auswählen --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="invoiceMonth">Leistungsmonat</label>
+                <input type="month" id="invoiceMonth">
+            </div>
+            <div class="form-group">
+                <label for="invoiceDate">Rechnungsdatum</label>
+                <input type="date" id="invoiceDate">
+            </div>
+        </div>
+        <button onclick="generateInvoice()">Rechnung erstellen</button>
+        <button class="info" onclick="generateReport()">Bericht erstellen</button>
+    </section>
+</div>
+
+<div id="invoiceModal" class="modal" onclick="if(event.target===this) closeModal()">
+    <div class="modal-content">
+        <div class="modal-header no-print">
+            <h2>Rechnungsvorschau</h2>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <div id="invoiceOutput"></div>
+        <div class="modal-actions no-print">
+            <button onclick="copyInvoice()" class="info">Rechnungstext kopieren</button>
+            <button onclick="printInvoice()">Drucken / PDF</button>
+            <button onclick="closeModal()" class="secondary">Schließen</button>
+        </div>
+    </div>
+</div>
+
+<script>
+"use strict";
+
+const DATA_VERSION = 3;
+const STORAGE_KEY = "smartTimeData";
+const PROJECTS_KEY = "projects";
+const CUSTOMERS_KEY = "customers";
+const INVOICE_COUNTER_KEY = "nextInvoiceNumber";
+const INVOICE_SETTINGS_KEY = "invoiceSettings";
+const GITHUB_SETTINGS_KEY = "githubSettings";
+const GITHUB_TOKEN_KEY = "githubSessionToken";
+const GITHUB_LAST_SYNC_SHA_KEY = "githubLastSyncSha";
+
+const DEFAULT_PROJECTS = [
+    { id: 1, name: "Wissenschafts- und Kulturpark Schwielowsee", customerIds: [1] },
+    { id: 2, name: "Schwarze Pumpe", customerIds: [2, 3] },
+    { id: 3, name: "Projekt 3", customerIds: [1, 2] },
+    { id: 4, name: "Projekt 4", customerIds: [3] },
+    { id: 5, name: "4D Cell", customerIds: [4] }
+];
+
+const DEFAULT_CUSTOMERS = [
+    { id: 1, name: "Gegenbauer", address: "Musterstraße 1\n10115 Berlin" },
+    { id: 2, name: "Christine Herntier", address: "Beispielweg 2\n10117 Berlin" },
+    { id: 3, name: "Zweckverband", address: "Testallee 3\n10119 Berlin" },
+    { id: 4, name: "Joh Schöneberg", address: "Demostraße 4\n14542 Schwielowsee" }
+];
+
+const DEFAULT_INVOICE_SETTINGS = {
+    senderName: "",
+    senderAddress: "",
+    taxNumber: "",
+    phone: "",
+    email: "",
+    bank: "",
+    iban: "",
+    bic: "",
+    accountHolder: "",
+    paymentTerms: "Zahlung innerhalb von 14 Tagen ab Rechnungseingang ohne Abzüge."
+};
+let invoiceSettings = {...DEFAULT_INVOICE_SETTINGS};
+
+const rateConfig = {
+    firstRate: 350,
+    dayThreshold: 8,
+    dayRate: 3000,
+    vatRate: 0.19
+};
+
+let projects = [];
+let customers = [];
+let timeEntries = [];
+let nextProjectId = 1;
+let nextCustomerId = 1;
+let nextInvoiceNumber = 24;
+let editingEntryId = null;
+let lastGeneratedInvoiceText = "";
+
+function todayISO() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+}
+
+function currentMonthISO() {
+    return todayISO().slice(0, 7);
+}
+
+function formatDate(iso) {
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
+    const [y, m, d] = iso.split("-");
+    return `${d}.${m}.${y}`;
+}
+
+function parseDateISO(value) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+    const [y, m, d] = value.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function monthStart(month) {
+    return `${month}-01`;
+}
+
+function monthEnd(month) {
+    const [y, m] = month.split("-").map(Number);
+    const last = new Date(y, m, 0).getDate();
+    return `${y}-${String(m).padStart(2, "0")}-${String(last).padStart(2, "0")}`;
+}
+
+function isValidISODate(value) {
+    return !!parseDateISO(value);
+}
+
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function money(value) {
+    return new Intl.NumberFormat("de-DE", {
+        style: "currency",
+        currency: "EUR"
+    }).format(value);
+}
+
+function showStatus(message, type = "success") {
+    const el = document.getElementById("status");
+    el.innerHTML = `<div class="${type}">${escapeHtml(message)}</div>`;
+    window.setTimeout(() => {
+        if (el.textContent === message) el.innerHTML = "";
+    }, 4000);
+}
+
+function normalizeId(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+}
+
+function normalizeData(raw) {
+    const normalized = {
+        version: DATA_VERSION,
+        projects: [],
+        customers: [],
+        timeEntries: [],
+        nextProjectId: 1,
+        nextCustomerId: 1,
+        nextInvoiceNumber: 24
+    };
+
+    const rawProjects = Array.isArray(raw?.projects) ? raw.projects : [];
+    const rawCustomers = Array.isArray(raw?.customers) ? raw.customers : [];
+    const rawEntries = Array.isArray(raw?.timeEntries)
+        ? raw.timeEntries
+        : (Array.isArray(raw?.entries) ? raw.entries : []);
+
+    normalized.customers = rawCustomers.map((c, index) => ({
+        id: normalizeId(c.id) ?? index + 1,
+        name: String(c.name ?? c.customer ?? "").trim(),
+        address: typeof c.address === "string" ? c.address : ""
+    })).filter(c => c.name);
+
+    normalized.projects = rawProjects.map((p, index) => ({
+        id: normalizeId(p.id) ?? index + 1,
+        name: String(p.name ?? p.project ?? "").trim(),
+        customerIds: Array.isArray(p.customerIds)
+            ? p.customerIds.map(normalizeId).filter(id => id !== null)
+            : []
+    })).filter(p => p.name);
+
+    normalized.timeEntries = rawEntries.map((e, index) => {
+        let date = e.date;
+        if (typeof date === "string" && /^\d{1,2}\.\d{1,2}\.\d{4}$/.test(date)) {
+            const [d, m, y] = date.split(".");
+            date = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        }
+
+        return {
+            id: normalizeId(e.id) ?? index + 1,
+            date: isValidISODate(date) ? date : "",
+            projectId: normalizeId(e.projectId),
+            customerId: normalizeId(e.customerId),
+            project: e.project ? String(e.project) : "",
+            customer: e.customer ? String(e.customer) : "",
+            description: String(e.description ?? "").trim(),
+            hours: Number(e.hours) || 0,
+            rate: Number(e.rate) || rateConfig.firstRate,
+            invoiceNumber: e.invoiceNumber ? String(e.invoiceNumber) : ""
+        };
+    }).filter(e => e.date && e.description && e.hours > 0);
+
+    const maxProject = normalized.projects.reduce((m, p) => Math.max(m, p.id || 0), 0);
+    const maxCustomer = normalized.customers.reduce((m, c) => Math.max(m, c.id || 0), 0);
+    const maxEntry = normalized.timeEntries.reduce((m, e) => Math.max(m, e.id || 0), 0);
+
+    normalized.nextProjectId = Math.max(Number(raw?.nextProjectId) || 0, maxProject + 1, 1);
+    normalized.nextCustomerId = Math.max(Number(raw?.nextCustomerId) || 0, maxCustomer + 1, 1);
+    normalized.nextEntryId = Math.max(Number(raw?.nextEntryId) || 0, maxEntry + 1, 1);
+
+    const importedInvoiceNumber =
+        Number(raw?.nextInvoiceNumber ?? raw?.globalInvoiceCounter);
+
+    normalized.nextInvoiceNumber =
+        Number.isFinite(importedInvoiceNumber) && importedInvoiceNumber > 0
+            ? Math.floor(importedInvoiceNumber)
+            : 24;
+
+    return normalized;
+}
+
+function seedDefaultsIfNecessary() {
+    const hasAnyData =
+        localStorage.getItem(STORAGE_KEY) ||
+        localStorage.getItem(PROJECTS_KEY) ||
+        localStorage.getItem(CUSTOMERS_KEY);
+
+    if (!hasAnyData) {
+        projects = structuredClone(DEFAULT_PROJECTS);
+        customers = structuredClone(DEFAULT_CUSTOMERS);
+        timeEntries = [];
+        nextProjectId = 6;
+        nextCustomerId = 5;
+        nextInvoiceNumber = 24;
+        saveAllData();
+    }
+}
+
+function loadData() {
+    try {
+        seedDefaultsIfNecessary();
+
+        const rawBundle = {
+            projects: JSON.parse(localStorage.getItem(PROJECTS_KEY) || "null"),
+            customers: JSON.parse(localStorage.getItem(CUSTOMERS_KEY) || "null"),
+            timeEntries: JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"),
+            nextInvoiceNumber: JSON.parse(localStorage.getItem(INVOICE_COUNTER_KEY) || "null")
+        };
+
+        const raw = {
+            projects: Array.isArray(rawBundle.projects) ? rawBundle.projects : undefined,
+            customers: Array.isArray(rawBundle.customers) ? rawBundle.customers : undefined,
+            timeEntries: Array.isArray(rawBundle.timeEntries)
+                ? rawBundle.timeEntries
+                : (rawBundle.timeEntries?.timeEntries ?? rawBundle.timeEntries?.entries),
+            nextInvoiceNumber:
+                rawBundle.nextInvoiceNumber ??
+                rawBundle.timeEntries?.nextInvoiceNumber ??
+                rawBundle.timeEntries?.globalInvoiceCounter
+        };
+
+        const fallbackProjects = raw.projects ?? DEFAULT_PROJECTS;
+        const fallbackCustomers = raw.customers ?? DEFAULT_CUSTOMERS;
+
+        const normalized = normalizeData({
+            ...raw,
+            projects: fallbackProjects,
+            customers: fallbackCustomers,
+            timeEntries: raw.timeEntries ?? []
+        });
+
+        projects = normalized.projects;
+        customers = normalized.customers;
+        timeEntries = normalized.timeEntries;
+        nextProjectId = normalized.nextProjectId;
+        nextCustomerId = normalized.nextCustomerId;
+        nextInvoiceNumber = normalized.nextInvoiceNumber;
+
+        saveAllData();
+    } catch (error) {
+        console.error("Fehler beim Laden:", error);
+        projects = structuredClone(DEFAULT_PROJECTS);
+        customers = structuredClone(DEFAULT_CUSTOMERS);
+        timeEntries = [];
+        nextProjectId = 6;
+        nextCustomerId = 5;
+        nextInvoiceNumber = 24;
+        showStatus("Lokale Daten konnten nicht gelesen werden. Es wurden Standarddaten geladen.", "error");
+    }
+}
+
+function saveAllData() {
+    const bundle = {
+        version: DATA_VERSION,
+        projects,
+        customers,
+        timeEntries,
+        nextProjectId,
+        nextCustomerId,
+        nextEntryId: getNextEntryId(),
+        nextInvoiceNumber
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(bundle));
+    localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+    localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(customers));
+    localStorage.setItem(INVOICE_COUNTER_KEY, String(nextInvoiceNumber));
+    localStorage.setItem(INVOICE_SETTINGS_KEY, JSON.stringify(invoiceSettings));
+}
+
+function getNextEntryId() {
+    return timeEntries.reduce((max, e) => Math.max(max, Number(e.id) || 0), 0) + 1;
+}
+
+function getProject(id) {
+    return projects.find(p => p.id === Number(id));
+}
+
+function getCustomer(id) {
+    return customers.find(c => c.id === Number(id));
+}
+
+function updateAllUI() {
+    populateProjectDropdowns();
+    updateCustomerDropdown();
+    updateInvoiceCustomerDropdown();
+    updateNewProjectCustomers();
+    updateProjectsTable();
+    updateCustomersTable();
+    updateTimeTable();
+}
+
+function populateProjectDropdowns() {
+    const selects = [
+        document.getElementById("project"),
+        document.getElementById("invoiceProject")
+    ];
+
+    selects.forEach(select => {
+        const old = select.value;
+        select.innerHTML = '<option value="">-- Projekt auswählen --</option>';
+        projects.forEach(project => {
+            const option = document.createElement("option");
+            option.value = project.id;
+            option.textContent = project.name;
+            select.appendChild(option);
+        });
+        if (projects.some(p => String(p.id) === old)) select.value = old;
+    });
+}
+
+function updateCustomerDropdown() {
+    const projectId = Number(document.getElementById("project").value);
+    const select = document.getElementById("customer");
+    const old = select.value;
+
+    select.innerHTML = '<option value="">-- Kunde auswählen --</option>';
+
+    const project = getProject(projectId);
+    const ids = project?.customerIds || [];
+
+    ids.forEach(id => {
+        const customer = getCustomer(id);
+        if (!customer) return;
+        const option = document.createElement("option");
+        option.value = customer.id;
+        option.textContent = customer.name;
+        select.appendChild(option);
+    });
+
+    if (ids.some(id => String(id) === old)) select.value = old;
+}
+
+function updateInvoiceCustomerDropdown() {
+    const projectId = Number(document.getElementById("invoiceProject").value);
+    const select = document.getElementById("invoiceCustomer");
+    const old = select.value;
+
+    select.innerHTML = '<option value="">-- Kunde auswählen --</option>';
+
+    const project = getProject(projectId);
+    const ids = project?.customerIds || [];
+
+    ids.forEach(id => {
+        const customer = getCustomer(id);
+        if (!customer) return;
+        const option = document.createElement("option");
+        option.value = customer.id;
+        option.textContent = customer.name;
+        select.appendChild(option);
+    });
+
+    if (ids.some(id => String(id) === old)) select.value = old;
+}
+
+function updateNewProjectCustomers() {
+    const container = document.getElementById("newProjectCustomers");
+    container.innerHTML = "";
+
+    if (!customers.length) {
+        container.innerHTML = '<span class="muted">Noch keine Kunden vorhanden.</span>';
+        return;
+    }
+
+    customers.forEach(customer => {
+        const label = document.createElement("label");
+        label.innerHTML = `<input type="checkbox" value="${customer.id}"> ${escapeHtml(customer.name)}`;
+        container.appendChild(label);
+    });
+}
+
+function updateProjectsTable() {
+    const body = document.getElementById("projectsBody");
+    body.innerHTML = "";
+
+    if (!projects.length) {
+        body.innerHTML = '<tr><td colspan="3" class="empty">Keine Projekte vorhanden.</td></tr>';
+        return;
+    }
+
+    projects.forEach(project => {
+        const names = project.customerIds
+            .map(id => getCustomer(id)?.name)
+            .filter(Boolean)
+            .join(", ");
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${escapeHtml(project.name)}</td>
+            <td>${escapeHtml(names || "Keine Zuordnung")}</td>
+            <td class="actions">
+                <button class="small" onclick="editProject(${project.id})">Bearbeiten</button>
+                <button class="small danger" onclick="deleteProject(${project.id})">Löschen</button>
+            </td>`;
+        body.appendChild(row);
+    });
+}
+
+function updateCustomersTable() {
+    const body = document.getElementById("customersBody");
+    body.innerHTML = "";
+
+    if (!customers.length) {
+        body.innerHTML = '<tr><td colspan="3" class="empty">Keine Kunden vorhanden.</td></tr>';
+        return;
+    }
+
+    customers.forEach(customer => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${escapeHtml(customer.name)}</td>
+            <td>${escapeHtml(customer.address).replaceAll("\\n", "<br>")}</td>
+            <td class="actions">
+                <button class="small" onclick="editCustomer(${customer.id})">Bearbeiten</button>
+                <button class="small danger" onclick="deleteCustomer(${customer.id})">Löschen</button>
+            </td>`;
+        body.appendChild(row);
+    });
+}
+
+function updateTimeTable() {
+    const body = document.getElementById("timeEntriesBody");
+    const filter = document.getElementById("entryMonthFilter").value;
+    body.innerHTML = "";
+
+    let visible = timeEntries.filter(entry => !filter || entry.date.startsWith(filter));
+    visible = [...visible].sort((a, b) => b.date.localeCompare(a.date));
+
+    if (!visible.length) {
+        body.innerHTML = '<tr><td colspan="7" class="empty">Keine Zeiteinträge für den gewählten Filter.</td></tr>';
+        return;
+    }
+
+    visible.forEach(entry => {
+        const project = getProject(entry.projectId);
+        const customer = getCustomer(entry.customerId);
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${formatDate(entry.date)}</td>
+            <td>${escapeHtml(project?.name || entry.project || "Unbekannt")}</td>
+            <td>${escapeHtml(customer?.name || entry.customer || "Unbekannt")}</td>
+            <td>${escapeHtml(entry.description)}</td>
+            <td>${Number(entry.hours).toLocaleString("de-DE", {maximumFractionDigits:2})}</td>
+            <td>${money(entry.rate)} / h</td>
+            <td class="actions">
+                <button class="small" onclick="editEntry(${entry.id})">Bearbeiten</button>
+                <button class="small danger" onclick="deleteEntry(${entry.id})">Löschen</button>
+            </td>`;
+        body.appendChild(row);
+    });
+}
+
+function addProject() {
+    const nameInput = document.getElementById("newProjectName");
+    const name = nameInput.value.trim();
+    const customerIds = [...document.querySelectorAll("#newProjectCustomers input:checked")]
+        .map(input => Number(input.value));
+
+    if (!name) {
+        showStatus("Bitte einen Projektnamen eingeben.", "error");
+        return;
+    }
+    if (!customerIds.length) {
+        showStatus("Bitte mindestens einen Kunden zuordnen.", "error");
+        return;
+    }
+
+    projects.push({
+        id: nextProjectId++,
+        name,
+        customerIds
+    });
+
+    nameInput.value = "";
+    document.querySelectorAll("#newProjectCustomers input").forEach(input => input.checked = false);
+    saveAllData();
+    updateAllUI();
+    showStatus("Projekt angelegt.");
+}
+
+function editProject(id) {
+    const project = getProject(id);
+    if (!project) return;
+
+    const name = prompt("Projektname:", project.name);
+    if (name === null) return;
+    const trimmed = name.trim();
+    if (!trimmed) {
+        showStatus("Der Projektname darf nicht leer sein.", "error");
+        return;
+    }
+
+    const current = new Set(project.customerIds);
+    const customerText = customers.map(c =>
+        `${c.id}: ${c.name}${current.has(c.id) ? " [zugeordnet]" : ""}`
+    ).join("\n");
+
+    const selection = prompt(
+        "Kunden-IDs zuordnen, kommasepariert.\n\n" + customerText,
+        project.customerIds.join(",")
+    );
+    if (selection === null) return;
+
+    const customerIds = selection
+        .split(",")
+        .map(v => Number(v.trim()))
+        .filter(id => customers.some(c => c.id === id));
+
+    if (!customerIds.length) {
+        showStatus("Mindestens ein gültiger Kunde muss zugeordnet sein.", "error");
+        return;
+    }
+
+    project.name = trimmed;
+    project.customerIds = [...new Set(customerIds)];
+
+    saveAllData();
+    updateAllUI();
+    showStatus("Projekt aktualisiert.");
+}
+
+function deleteProject(id) {
+    const project = getProject(id);
+    if (!project) return;
+
+    const used = timeEntries.some(entry => entry.projectId === id);
+    if (used) {
+        showStatus("Projekt kann nicht gelöscht werden, solange Zeiteinträge darauf verweisen.", "error");
+        return;
+    }
+
+    if (!confirm(`Projekt "${project.name}" wirklich löschen?`)) return;
+
+    projects = projects.filter(p => p.id !== id);
+    saveAllData();
+    updateAllUI();
+    showStatus("Projekt gelöscht.");
+}
+
+function addCustomer() {
+    const nameInput = document.getElementById("newCustomerName");
+    const addressInput = document.getElementById("newCustomerAddress");
+
+    const name = nameInput.value.trim();
+    const address = addressInput.value.trim();
+
+    if (!name) {
+        showStatus("Bitte einen Kundennamen eingeben.", "error");
+        return;
+    }
+
+    customers.push({
+        id: nextCustomerId++,
+        name,
+        address
+    });
+
+    nameInput.value = "";
+    addressInput.value = "";
+    saveAllData();
+    updateAllUI();
+    showStatus("Kunde angelegt.");
+}
+
+function editCustomer(id) {
+    const customer = getCustomer(id);
+    if (!customer) return;
+
+    const name = prompt("Kundenname:", customer.name);
+    if (name === null) return;
+    if (!name.trim()) {
+        showStatus("Der Kundenname darf nicht leer sein.", "error");
+        return;
+    }
+
+    const address = prompt("Adresse (mehrzeilig mit \\n):", customer.address);
+    if (address === null) return;
+
+    customer.name = name.trim();
+    customer.address = address.trim();
+
+    saveAllData();
+    updateAllUI();
+    showStatus("Kunde aktualisiert.");
+}
+
+function deleteCustomer(id) {
+    const customer = getCustomer(id);
+    if (!customer) return;
+
+    const usedByProject = projects.some(p => p.customerIds.includes(id));
+    const usedByEntry = timeEntries.some(e => e.customerId === id);
+
+    if (usedByProject || usedByEntry) {
+        showStatus("Kunde kann nicht gelöscht werden, solange er in Projekten oder Zeiteinträgen verwendet wird.", "error");
+        return;
+    }
+
+    if (!confirm(`Kunde "${customer.name}" wirklich löschen?`)) return;
+
+    customers = customers.filter(c => c.id !== id);
+    saveAllData();
+    updateAllUI();
+    showStatus("Kunde gelöscht.");
+}
+
+function setFormForEntry(entry) {
+    document.getElementById("project").value = entry.projectId;
+    updateCustomerDropdown();
+    document.getElementById("customer").value = entry.customerId;
+    document.getElementById("description").value = entry.description;
+    document.getElementById("hours").value = entry.hours;
+    document.getElementById("rate").value = entry.rate;
+    document.getElementById("date").value = entry.date;
+
+    editingEntryId = entry.id;
+    document.getElementById("entrySaveButton").textContent = "Änderung speichern";
+    document.getElementById("entryCancelButton").style.display = "inline-block";
+    window.scrollTo({ top: document.getElementById("project").closest(".card").offsetTop, behavior: "smooth" });
+}
+
+function editEntry(id) {
+    const entry = timeEntries.find(e => e.id === id);
+    if (!entry) return;
+    setFormForEntry(entry);
+}
+
+function cancelEntryEdit() {
+    editingEntryId = null;
+    document.getElementById("entrySaveButton").textContent = "Stunde hinzufügen";
+    document.getElementById("entryCancelButton").style.display = "none";
+    document.getElementById("description").value = "";
+    document.getElementById("hours").value = "";
+    document.getElementById("date").value = todayISO();
+}
+
+function saveEntry() {
+    const projectId = Number(document.getElementById("project").value);
+    const customerId = Number(document.getElementById("customer").value);
+    const description = document.getElementById("description").value.trim();
+    const hours = Number(document.getElementById("hours").value);
+    const rate = Number(document.getElementById("rate").value);
+    const date = document.getElementById("date").value;
+
+    const project = getProject(projectId);
+    const customer = getCustomer(customerId);
+
+    if (!project || !customer) {
+        showStatus("Bitte ein gültiges Projekt und einen gültigen Kunden auswählen.", "error");
+        return;
+    }
+    if (!description) {
+        showStatus("Bitte eine Leistungsbeschreibung eingeben.", "error");
+        return;
+    }
+    if (!Number.isFinite(hours) || hours <= 0) {
+        showStatus("Die Stunden müssen größer als 0 sein.", "error");
+        return;
+    }
+    if (![300, 350].includes(rate)) {
+        showStatus("Ungültiger Stundensatz.", "error");
+        return;
+    }
+    if (!isValidISODate(date)) {
+        showStatus("Bitte ein gültiges Datum auswählen.", "error");
+        return;
+    }
+
+    if (editingEntryId !== null) {
+        const entry = timeEntries.find(e => e.id === editingEntryId);
+        if (!entry) return;
+
+        entry.projectId = projectId;
+        entry.customerId = customerId;
+        entry.project = project.name;
+        entry.customer = customer.name;
+        entry.description = description;
+        entry.hours = hours;
+        entry.rate = rate;
+        entry.date = date;
+
+        showStatus("Zeiteintrag aktualisiert.");
+    } else {
+        timeEntries.push({
+            id: getNextEntryId(),
+            date,
+            projectId,
+            customerId,
+            project: project.name,
+            customer: customer.name,
+            description,
+            hours,
+            rate,
+            invoiceNumber: ""
+        });
+
+        showStatus("Zeiteintrag gespeichert.");
+    }
+
+    saveAllData();
+    cancelEntryEdit();
+    updateTimeTable();
+}
+
+function deleteEntry(id) {
+    const entry = timeEntries.find(e => e.id === id);
+    if (!entry) return;
+
+    if (!confirm(`Zeiteintrag vom ${formatDate(entry.date)} wirklich löschen?`)) return;
+
+    timeEntries = timeEntries.filter(e => e.id !== id);
+    saveAllData();
+    updateTimeTable();
+    showStatus("Zeiteintrag gelöscht.");
+}
+
+function allocateInvoiceNumber(month) {
+    const year = month.slice(0, 4);
+    const monthPart = month.slice(5, 7);
+    const number = `RG-${year}-${monthPart}-${String(nextInvoiceNumber).padStart(3, "0")}`;
+    nextInvoiceNumber++;
+    saveAllData();
+    return number;
+}
+
+function getInvoiceEntries(projectId, customerId, month) {
+    const start = monthStart(month);
+    const end = monthEnd(month);
+
+    return timeEntries
+        .filter(entry =>
+            entry.projectId === projectId &&
+            entry.customerId === customerId &&
+            entry.date >= start &&
+            entry.date <= end
+        )
+        .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function calculateInvoiceDays(entries) {
+    const byDate = new Map();
+
+    entries.forEach(entry => {
+        if (!byDate.has(entry.date)) byDate.set(entry.date, []);
+        byDate.get(entry.date).push(entry);
+    });
+
+    const days = [];
+
+    for (const [date, dayEntries] of [...byDate.entries()].sort((a,b) => a[0].localeCompare(b[0]))) {
+        const hours = dayEntries.reduce((sum, e) => sum + Number(e.hours), 0);
+        let amount = 0;
+        let label = "";
+
+        // Der im jeweiligen Zeiteintrag gespeicherte Stundensatz (300 € oder 350 €)
+        // gilt für die Stundenabrechnung. Erst bei MEHR als 8 Stunden Gesamtzeit
+        // an einem Tag wird stattdessen der Tagessatz von 3.000 € berechnet.
+        if (hours > rateConfig.dayThreshold) {
+            amount = rateConfig.dayRate;
+            label = "Tagessatz";
+        } else {
+            amount = dayEntries.reduce((sum, entry) => {
+                const rate = Number(entry.rate);
+                const validRate = rate === 300 || rate === 350 ? rate : rateConfig.firstRate;
+                return sum + Number(entry.hours) * validRate;
+            }, 0);
+            label = "Std.-Abr.";
+        }
+
+        days.push({
+            date,
+            entries: dayEntries,
+            hours,
+            amount,
+            label
+        });
+    }
+
+    return days;
+}
+
+function germanMonth(month) {
+    const [year, monthNumber] = month.split("-").map(Number);
+    return new Intl.DateTimeFormat("de-DE", { month: "long", year: "numeric" })
+        .format(new Date(year, monthNumber - 1, 1));
+}
+
+function buildInvoiceText(invoiceNumber, invoiceDate, project, customer, month, days, net, vat, total) {
+    const lines = [];
+    lines.push(`RECHNUNG ${invoiceNumber}`);
+    lines.push("");
+    lines.push(`${invoiceSettings.senderName}`);
+    if (invoiceSettings.senderAddress) lines.push(invoiceSettings.senderAddress);
+    if (invoiceSettings.taxNumber) lines.push(`Steuernummer: ${invoiceSettings.taxNumber}`);
+    if (invoiceSettings.phone) lines.push(`Tel.: ${invoiceSettings.phone}`);
+    if (invoiceSettings.email) lines.push(`E-Mail: ${invoiceSettings.email}`);
+    lines.push("");
+    lines.push(`${customer.name}`);
+    if (customer.address) lines.push(customer.address);
+    lines.push("");
+    lines.push(`Rechnungsdatum: ${formatDate(invoiceDate)}`);
+    lines.push(`Leistungszeitraum: ${germanMonth(month)}`);
+    lines.push(`Projekt: ${project.name}`);
+    lines.push("");
+    lines.push("LEISTUNGEN");
+    lines.push("");
+
+    days.forEach((day, index) => {
+        lines.push(`${index + 1}. ${formatDate(day.date)} | ${day.hours.toLocaleString("de-DE", {maximumFractionDigits:2})} h | ${day.label} | ${money(day.amount)}`);
+        day.entries.forEach(entry => {
+            lines.push(`   ${entry.description || "Leistung"} – ${Number(entry.hours).toLocaleString("de-DE", {maximumFractionDigits:2})} h × ${money(entry.rate)}`);
+        });
+        if (day.hours > rateConfig.dayThreshold) {
+            lines.push(`   Abrechnung: Tagessatz ${money(rateConfig.dayRate)} (bei mehr als ${rateConfig.dayThreshold} h)`);
+        } else {
+            lines.push(`   Abrechnung: jeweiliger Stundensatz aus den Zeiteinträgen (300 € oder 350 € / h)`);
+        }
+    });
+
+    lines.push("");
+    lines.push(`Netto: ${money(net)}`);
+    lines.push(`Umsatzsteuer ${(rateConfig.vatRate * 100).toLocaleString("de-DE")} %: ${money(vat)}`);
+    lines.push(`RECHNUNGSBETRAG: ${money(total)}`);
+    lines.push("");
+    if (invoiceSettings.paymentTerms) lines.push(invoiceSettings.paymentTerms);
+    lines.push("");
+    if (invoiceSettings.bank) lines.push(`Bank: ${invoiceSettings.bank}`);
+    if (invoiceSettings.iban) lines.push(`IBAN: ${invoiceSettings.iban}`);
+    if (invoiceSettings.bic) lines.push(`BIC: ${invoiceSettings.bic}`);
+    if (invoiceSettings.accountHolder) lines.push(`Kontoinhaber: ${invoiceSettings.accountHolder}`);
+    return lines.join("\n");
+}
+
+function generateInvoice() {
+    try {
+        const projectId = Number(document.getElementById("invoiceProject").value);
+        const customerId = Number(document.getElementById("invoiceCustomer").value);
+        const month = document.getElementById("invoiceMonth").value;
+        const invoiceDate = document.getElementById("invoiceDate").value || todayISO();
+
+        const project = getProject(projectId);
+        const customer = getCustomer(customerId);
+
+        if (!project || !customer || !/^\d{4}-\d{2}$/.test(month)) {
+            showStatus("Bitte Projekt, Kunde und Leistungsmonat auswählen.", "error");
+            return;
+        }
+
+        if (!isValidISODate(invoiceDate)) {
+            showStatus("Bitte ein gültiges Rechnungsdatum auswählen.", "error");
+            return;
+        }
+
+        const entries = getInvoiceEntries(projectId, customerId, month);
+        if (!entries.length) {
+            showStatus("Für diese Kombination wurden im gewählten Monat keine Stunden gefunden.", "warning-box");
+            return;
+        }
+
+        const days = calculateInvoiceDays(entries);
+        const net = days.reduce((sum, day) => sum + day.amount, 0);
+        const vat = net * rateConfig.vatRate;
+        const total = net + vat;
+
+        // Die Rechnungsnummer wird erst hier vergeben – nicht bereits beim Erfassen
+        // einer Stunde. Dadurch werden beim Korrigieren oder Löschen keine Nummern verbraucht.
+        const invoiceNumber = allocateInvoiceNumber(month);
+
+        const invoiceText = buildInvoiceText(
+            invoiceNumber, invoiceDate, project, customer, month, days, net, vat, total
+        );
+        lastGeneratedInvoiceText = invoiceText;
+
+        // Die verwendeten Einträge werden mit der erzeugten Rechnungsnummer markiert.
+        entries.forEach(entry => entry.invoiceNumber = invoiceNumber);
+        saveAllData();
+        updateTimeTable();
+
+        const dayRows = days.map((day, index) => `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${formatDate(day.date)}</td>
+                <td>${escapeHtml(day.entries.map(e => e.description).join("; "))}</td>
+                <td>${day.hours.toLocaleString("de-DE", {maximumFractionDigits:2})}</td>
+                <td>${escapeHtml(day.label)}</td>
+                <td>${money(day.amount)}</td>
+            </tr>
+        `).join("");
+
+        document.getElementById("invoiceOutput").innerHTML = `
+            <div class="invoice-paper">
+                <div class="invoice-header">
+                    <div>
+                        <strong>${escapeHtml(invoiceSettings.senderName || "Absender")}</strong><br>
+                        ${escapeHtml(invoiceSettings.senderAddress).replaceAll("\n", "<br>")}
+                        ${invoiceSettings.taxNumber ? `<br>Steuernummer: ${escapeHtml(invoiceSettings.taxNumber)}` : ""}
+                        ${invoiceSettings.phone ? `<br>Tel.: ${escapeHtml(invoiceSettings.phone)}` : ""}
+                        ${invoiceSettings.email ? `<br>E-Mail: ${escapeHtml(invoiceSettings.email)}` : ""}
+                    </div>
+                    <div class="invoice-meta">
+                        <strong>${escapeHtml(customer.name)}</strong><br>
+                        ${escapeHtml(customer.address).replaceAll("\\n", "<br>")}<br><br>
+                        <strong>Rechnung Nr. ${escapeHtml(invoiceNumber)}</strong><br>
+                        Rechnungsdatum: ${formatDate(invoiceDate)}<br>
+                        Leistungszeitraum: ${escapeHtml(germanMonth(month))}
+                    </div>
+                </div>
+
+                <h2>Rechnung</h2>
+                <p>Vereinbarungsgemäß stelle ich Ihnen folgende Leistungen in Rechnung:</p>
+
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>Pos.</th>
+                            <th>Datum</th>
+                            <th>Leistung</th>
+                            <th>Stunden</th>
+                            <th>Abrechnung</th>
+                            <th>Betrag</th>
+                        </tr>
+                    </thead>
+                    <tbody>${dayRows}</tbody>
+                </table>
+
+                <div class="invoice-totals">
+                    <div><span>Netto</span><span>${money(net)}</span></div>
+                    <div><span>Umsatzsteuer 19%</span><span>${money(vat)}</span></div>
+                    <div class="invoice-total"><span>Rechnungsbetrag</span><span>${money(total)}</span></div>
+                </div>
+
+                <div class="bank-details">
+                    ${invoiceSettings.paymentTerms ? `<p>${escapeHtml(invoiceSettings.paymentTerms).replaceAll("\n", "<br>")}</p>` : ""}
+                    <p>
+                        ${invoiceSettings.bank ? `<strong>${escapeHtml(invoiceSettings.bank)}</strong><br>` : ""}
+                        ${invoiceSettings.iban ? `IBAN: ${escapeHtml(invoiceSettings.iban)}<br>` : ""}
+                        ${invoiceSettings.bic ? `BIC: ${escapeHtml(invoiceSettings.bic)}<br>` : ""}
+                        ${invoiceSettings.accountHolder ? `Kontoinhaber: ${escapeHtml(invoiceSettings.accountHolder)}` : ""}
+                    </p>
+                </div>
+            </div>
+        `;
+
+        document.getElementById("invoiceModal").style.display = "block";
+        showStatus(`Rechnung ${invoiceNumber} erstellt.`);
+    } catch (error) {
+        console.error("Fehler beim Erstellen der Rechnung:", error);
+        showStatus("Fehler beim Erstellen der Rechnung: " + error.message, "error");
+    }
+}
+
+async function copyInvoice() {
+    if (!lastGeneratedInvoiceText) {
+        showStatus("Es wurde noch keine Rechnung erzeugt.", "error");
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(lastGeneratedInvoiceText);
+        showStatus("Rechnungstext wurde in die Zwischenablage kopiert.");
+    } catch (error) {
+        console.error(error);
+        showStatus("Kopieren fehlgeschlagen.", "error");
+    }
+}
+
+function closeModal() {
+    document.getElementById("invoiceModal").style.display = "none";
+}
+
+function printInvoice() {
+    window.print();
+}
+
+function populateInvoiceSettingsForm() {
+    const map = {
+        settingsSenderName: "senderName", settingsSenderAddress: "senderAddress", settingsTaxNumber: "taxNumber",
+        settingsPhone: "phone", settingsEmail: "email", settingsBank: "bank", settingsIban: "iban",
+        settingsBic: "bic", settingsAccountHolder: "accountHolder", settingsPaymentTerms: "paymentTerms"
+    };
+    Object.entries(map).forEach(([id, key]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = invoiceSettings[key] || "";
+    });
+}
+
+function saveInvoiceSettings() {
+    const fields = {
+        senderName: "settingsSenderName", senderAddress: "settingsSenderAddress", taxNumber: "settingsTaxNumber",
+        phone: "settingsPhone", email: "settingsEmail", bank: "settingsBank", iban: "settingsIban",
+        bic: "settingsBic", accountHolder: "settingsAccountHolder", paymentTerms: "settingsPaymentTerms"
+    };
+    Object.entries(fields).forEach(([key, id]) => invoiceSettings[key] = document.getElementById(id).value.trim());
+    saveAllData();
+    showStatus("Rechnungseinstellungen gespeichert.");
+}
+
+function resetInvoiceSettings() {
+    if (!confirm("Rechnungseinstellungen wirklich auf den Ausgangszustand zurücksetzen?")) return;
+    invoiceSettings = {...DEFAULT_INVOICE_SETTINGS};
+    saveAllData();
+    populateInvoiceSettingsForm();
+    showStatus("Rechnungseinstellungen zurückgesetzt.");
+}
+
+function generateReport() {
+    const month = document.getElementById("invoiceMonth").value || currentMonthISO();
+    const filtered = timeEntries
+        .filter(e => e.date.startsWith(month))
+        .sort((a,b) => a.date.localeCompare(b.date));
+
+    if (!filtered.length) {
+        showStatus("Keine Zeiteinträge für den gewählten Monat.", "warning-box");
+        return;
+    }
+
+    const summary = new Map();
+    const byProjectAndDate = new Map();
+
+    // Für den Bericht wird dieselbe Tageslogik wie bei der Rechnung verwendet:
+    // > 8 h = 3.000 € Tagessatz, ansonsten die gespeicherten 300/350-€-Sätze.
+    filtered.forEach(entry => {
+        const projectName = getProject(entry.projectId)?.name || entry.project || "Unbekannt";
+        const key = `${entry.projectId}::${entry.date}`;
+        if (!byProjectAndDate.has(key)) byProjectAndDate.set(key, { projectName, entries: [] });
+        byProjectAndDate.get(key).entries.push(entry);
+    });
+
+    byProjectAndDate.forEach(({ projectName, entries }) => {
+        const hours = entries.reduce((sum, entry) => sum + Number(entry.hours), 0);
+        let amount;
+
+        if (hours > rateConfig.dayThreshold) {
+            amount = rateConfig.dayRate;
+        } else {
+            amount = entries.reduce((sum, entry) => {
+                const rate = Number(entry.rate);
+                const validRate = rate === 300 || rate === 350 ? rate : rateConfig.firstRate;
+                return sum + Number(entry.hours) * validRate;
+            }, 0);
+        }
+
+        if (!summary.has(projectName)) summary.set(projectName, { hours: 0, amount: 0 });
+        const item = summary.get(projectName);
+        item.hours += hours;
+        item.amount += amount;
+    });
+
+    let report = `BERICHT – ${germanMonth(month)}\n\n`;
+    for (const [project, data] of summary.entries()) {
+        report += `${project}: ${data.hours.toLocaleString("de-DE", {maximumFractionDigits:2})} h, ${money(data.amount)}\n`;
+    }
+
+    alert(report);
+}
+
+function getGitHubConfig() {
+    const owner = document.getElementById("githubOwner").value.trim();
+    const repo = document.getElementById("githubRepo").value.trim();
+    const path = document.getElementById("githubPath").value.trim() || "smart_time_data.json";
+    const branch = document.getElementById("githubBranch").value.trim() || "main";
+    const tokenInput = document.getElementById("githubToken").value.trim();
+    if (tokenInput) sessionStorage.setItem(GITHUB_TOKEN_KEY, tokenInput);
+    const token = tokenInput || sessionStorage.getItem(GITHUB_TOKEN_KEY) || "";
+    if (!owner || !repo || !path) throw new Error("GitHub-Eigentümer, Repository und Dateipfad müssen angegeben werden.");
+    return { owner, repo, path, branch, token };
+}
+
+function saveGitHubSettings() {
+    const data = {
+        owner: document.getElementById("githubOwner").value.trim(),
+        repo: document.getElementById("githubRepo").value.trim(),
+        path: document.getElementById("githubPath").value.trim() || "smart_time_data.json",
+        branch: document.getElementById("githubBranch").value.trim() || "main"
+    };
+    localStorage.setItem(GITHUB_SETTINGS_KEY, JSON.stringify(data));
+}
+
+function loadGitHubSettings() {
+    try {
+        const data = JSON.parse(localStorage.getItem(GITHUB_SETTINGS_KEY) || "null") || {};
+        document.getElementById("githubOwner").value = data.owner || "jhstb";
+        document.getElementById("githubRepo").value = data.repo || "smart-time-invoice";
+        document.getElementById("githubPath").value = data.path || "smart_time_data.json";
+        document.getElementById("githubBranch").value = data.branch || "main";
+        const token = sessionStorage.getItem(GITHUB_TOKEN_KEY);
+        if (token) document.getElementById("githubToken").value = token;
+    } catch (error) {
+        console.error("GitHub-Einstellungen konnten nicht geladen werden:", error);
+    }
+}
+
+function clearGitHubToken() {
+    sessionStorage.removeItem(GITHUB_TOKEN_KEY);
+    document.getElementById("githubToken").value = "";
+    setGitHubStatus("GitHub-Token aus dieser Sitzung gelöscht.");
+}
+
+function setGitHubStatus(message, type = "") {
+    const el = document.getElementById("githubStatus");
+    el.textContent = message;
+    el.className = type === "error" ? "error" : "muted";
+}
+
+function buildExportPayload() {
+    saveAllData();
+    return {
+        version: DATA_VERSION,
+        exportedAt: new Date().toISOString(),
+        projects,
+        customers,
+        timeEntries,
+        nextProjectId,
+        nextCustomerId,
+        nextEntryId: getNextEntryId(),
+        nextInvoiceNumber
+    };
+}
+
+async function githubRequest(url, options = {}) {
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            Accept: "application/vnd.github+json",
+            ...options.headers
+        }
+    });
+    const text = await response.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (_) {}
+    if (!response.ok) {
+        const detail = data?.message || `HTTP ${response.status}`;
+        throw new Error(detail);
+    }
+    return data;
+}
+
+function githubHeaders(token, withJson = false) {
+    const headers = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    if (withJson) headers["Content-Type"] = "application/json";
+    return headers;
+}
+
+async function fetchGitHubData() {
+    saveGitHubSettings();
+    const cfg = getGitHubConfig();
+    const encodedPath = cfg.path.split("/").map(encodeURIComponent).join("/");
+    const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${encodedPath}?ref=${encodeURIComponent(cfg.branch)}`;
+    const file = await githubRequest(url, { headers: githubHeaders(cfg.token) });
+    if (!file?.content) throw new Error("GitHub hat keinen Dateinhalt geliefert.");
+
+    const binary = atob(file.content.replace(/\n/g, ""));
+    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+    const text = new TextDecoder("utf-8").decode(bytes);
+    const raw = JSON.parse(text);
+    const normalized = normalizeData(raw);
+    if (!normalized.projects.length && !normalized.customers.length && !normalized.timeEntries.length) {
+        throw new Error("Die GitHub-Datei enthält keine verwertbaren Daten.");
+    }
+    return { cfg, file, normalized };
+}
+
+async function importDataFromGitHub(options = {}) {
+    const { silent = false } = options;
+    try {
+        setGitHubStatus("GitHub-Daten werden geladen …");
+        const { file, normalized } = await fetchGitHubData();
+        if (!silent && !confirm("Die aktuellen lokalen Daten werden durch die GitHub-Daten ersetzt. Fortfahren?")) return false;
+        projects = normalized.projects;
+        customers = normalized.customers;
+        timeEntries = normalized.timeEntries;
+        nextProjectId = normalized.nextProjectId;
+        nextCustomerId = normalized.nextCustomerId;
+        nextInvoiceNumber = normalized.nextInvoiceNumber;
+        saveAllData();
+        localStorage.setItem(GITHUB_LAST_SYNC_SHA_KEY, file.sha || "");
+        updateAllUI();
+        setGitHubStatus(`Import erfolgreich: ${timeEntries.length} Zeiteinträge übernommen.`);
+        return true;
+    } catch (error) {
+        console.error("GitHub-Importfehler:", error);
+        setGitHubStatus("GitHub-Import fehlgeschlagen: " + error.message, "error");
+        return false;
+    }
+}
+
+async function autoImportFromGitHubOnStartup() {
+    try {
+        const cfg = getGitHubConfig();
+        if (!cfg.owner || !cfg.repo || !cfg.path) return;
+
+        setGitHubStatus("Prüfe GitHub auf aktuelle Daten …");
+        const { file, normalized } = await fetchGitHubData();
+        const remoteSha = file.sha || "";
+        const lastSyncSha = localStorage.getItem(GITHUB_LAST_SYNC_SHA_KEY) || "";
+
+        if (remoteSha && remoteSha === lastSyncSha) {
+            setGitHubStatus(`GitHub ist aktuell (${normalized.timeEntries.length} Zeiteinträge).`);
+            return;
+        }
+
+        if (!lastSyncSha) {
+            const hasLocalData = projects.length || customers.length || timeEntries.length;
+            if (hasLocalData && !confirm("Es wurden GitHub-Daten gefunden. Sollen die lokalen Daten durch die GitHub-Daten ersetzt werden?")) {
+                setGitHubStatus("GitHub-Import beim Start übersprungen.");
+                return;
+            }
+        }
+
+        projects = normalized.projects;
+        customers = normalized.customers;
+        timeEntries = normalized.timeEntries;
+        nextProjectId = normalized.nextProjectId;
+        nextCustomerId = normalized.nextCustomerId;
+        nextInvoiceNumber = normalized.nextInvoiceNumber;
+        saveAllData();
+        localStorage.setItem(GITHUB_LAST_SYNC_SHA_KEY, remoteSha);
+        updateAllUI();
+        setGitHubStatus(`GitHub-Daten übernommen: ${timeEntries.length} Zeiteinträge.`);
+    } catch (error) {
+        console.warn("GitHub-Startimport nicht möglich:", error.message);
+        setGitHubStatus("Lokale Daten geladen. GitHub-Import beim Start nicht möglich: " + error.message, "error");
+    }
+}
+
+function utf8ToBase64(text) {
+    const bytes = new TextEncoder().encode(text);
+    let binary = "";
+    bytes.forEach(b => binary += String.fromCharCode(b));
+    return btoa(binary);
+}
+
+async function exportDataToGitHub() {
+    try {
+        saveGitHubSettings();
+        const cfg = getGitHubConfig();
+        if (!cfg.token) throw new Error("Für den GitHub-Export wird ein Personal Access Token benötigt.");
+        const encodedPath = cfg.path.split("/").map(encodeURIComponent).join("/");
+        const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${encodedPath}`;
+        setGitHubStatus("GitHub-Datei wird vorbereitet …");
+        let sha = null;
+        try {
+            const existing = await githubRequest(`${url}?ref=${encodeURIComponent(cfg.branch)}`, { headers: githubHeaders(cfg.token) });
+            sha = existing?.sha || null;
+        } catch (error) {
+            if (!/404/.test(error.message) && !/Not Found/i.test(error.message)) throw error;
+        }
+        const payload = buildExportPayload();
+        const body = {
+            message: `Smart Time & Invoice Suite: Datenexport ${todayISO()}`,
+            content: utf8ToBase64(JSON.stringify(payload, null, 2)),
+            branch: cfg.branch
+        };
+        if (sha) body.sha = sha;
+        const result = await githubRequest(url, {
+            method: "PUT",
+            headers: githubHeaders(cfg.token, true),
+            body: JSON.stringify(body)
+        });
+        localStorage.setItem(GITHUB_LAST_SYNC_SHA_KEY, result?.content?.sha || "");
+        setGitHubStatus(`Export erfolgreich. Commit: ${result?.commit?.sha ? result.commit.sha.slice(0, 7) : "ok"}.`);
+    } catch (error) {
+        console.error("GitHub-Exportfehler:", error);
+        setGitHubStatus("GitHub-Export fehlgeschlagen: " + error.message, "error");
+    }
+}
+
+function exportData() {
+    try {
+        saveAllData();
+        const data = buildExportPayload();
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `smart_time_data_${todayISO()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showStatus("Daten exportiert.");
+    } catch (error) {
+        console.error(error);
+        showStatus("Export fehlgeschlagen: " + error.message, "error");
+    }
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const raw = JSON.parse(e.target.result);
+            const normalized = normalizeData(raw);
+
+            if (!normalized.projects.length && !normalized.customers.length && !normalized.timeEntries.length) {
+                throw new Error("Die Datei enthält keine verwertbaren Daten.");
+            }
+
+            if (!confirm("Die aktuellen lokalen Daten werden durch die importierten Daten ersetzt. Fortfahren?")) {
+                return;
+            }
+
+            projects = normalized.projects;
+            customers = normalized.customers;
+            timeEntries = normalized.timeEntries;
+            nextProjectId = normalized.nextProjectId;
+            nextCustomerId = normalized.nextCustomerId;
+            nextInvoiceNumber = normalized.nextInvoiceNumber;
+
+            saveAllData();
+            updateAllUI();
+            showStatus("Daten erfolgreich importiert und normalisiert.");
+        } catch (error) {
+            console.error("Importfehler:", error);
+            showStatus("Import fehlgeschlagen: " + error.message, "error");
+        } finally {
+            event.target.value = "";
+        }
+    };
+    reader.readAsText(file);
+}
+
+function clearMonthFilter() {
+    document.getElementById("entryMonthFilter").value = "";
+    updateTimeTable();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("date").value = todayISO();
+    document.getElementById("invoiceDate").value = todayISO();
+    document.getElementById("invoiceMonth").value = currentMonthISO();
+
+    loadGitHubSettings();
+    loadData();
+    updateAllUI();
+    populateInvoiceSettingsForm();
+    autoImportFromGitHubOnStartup();
+});
+</script>
+</body>
+</html>
