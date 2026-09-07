@@ -1,13 +1,6 @@
 {
-  "timeEntries": [
-    {
-      "date": "3.9.2026",
-      "projectId": 5,
-      "customerId": 4,
-      "description": "test",
-      "hours": 2
-    }
-  ],
+  "version": 3,
+  "exportedAt": "2026-09-07T06:32:17.324Z",
   "projects": [
     {
       "id": 1,
@@ -50,21 +43,41 @@
   "customers": [
     {
       "id": 1,
-      "name": "Gegenbauer"
+      "name": "Gegenbauer",
+      "address": "Musterstraße 1\n10115 Berlin"
     },
     {
       "id": 2,
-      "name": "Christine Herntier"
+      "name": "Christine Herntier",
+      "address": "Beispielweg 2\n10117 Berlin"
     },
     {
       "id": 3,
-      "name": "Zweckverband"
+      "name": "Zweckverband",
+      "address": "Testallee 3\n10119 Berlin"
     },
     {
       "id": 4,
-      "name": "Joh Schöneberg"
+      "name": "Joh Schöneberg",
+      "address": "Demostraße 4\n14542 Schwielowsee"
+    }
+  ],
+  "timeEntries": [
+    {
+      "id": 1,
+      "date": "2026-09-07",
+      "projectId": 2,
+      "customerId": 2,
+      "project": "Schwarze Pumpe",
+      "customer": "Christine Herntier",
+      "description": "Vorbesprechung",
+      "hours": 4,
+      "rate": 350,
+      "invoiceNumber": "RG-2026-09-024"
     }
   ],
   "nextProjectId": 6,
-  "nextCustomerId": 5
+  "nextCustomerId": 5,
+  "nextEntryId": 2,
+  "nextInvoiceNumber": 25
 }
