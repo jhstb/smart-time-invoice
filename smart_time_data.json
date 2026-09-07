@@ -1,27 +1,6 @@
 {
-  "timeEntries": [
-    {
-      "date": "3.9.2026",
-      "projectId": 2,
-      "customerId": 2,
-      "description": "test",
-      "hours": 5
-    },
-    {
-      "date": "3.9.2026",
-      "projectId": 1,
-      "customerId": 1,
-      "description": "Test",
-      "hours": 3
-    },
-    {
-      "date": "3.9.2026",
-      "projectId": 1,
-      "customerId": 1,
-      "description": "Brochüre",
-      "hours": 14
-    }
-  ],
+  "version": 3,
+  "exportedAt": "2026-09-07T08:17:20.744Z",
   "projects": [
     {
       "id": 1,
@@ -49,22 +28,41 @@
   "customers": [
     {
       "id": 1,
-      "name": "Gegenbauer"
+      "name": "Gegenbauer",
+      "address": ""
     },
     {
       "id": 2,
-      "name": "Christine Herntier"
+      "name": "Christine Herntier",
+      "address": ""
     },
     {
       "id": 3,
-      "name": "Zweckverband"
+      "name": "Zweckverband",
+      "address": ""
     },
     {
       "id": 1,
-      "name": "Joh Schöneberg"
+      "name": "Joh Schöneberg",
+      "address": ""
     }
   ],
-  "nextProjectId": 2,
-  "nextCustomerId": 2,
-  "nextInvoiceNumber": 25
+  "timeEntries": [
+    {
+      "id": 1,
+      "date": "2026-09-07",
+      "projectId": 2,
+      "customerId": 3,
+      "project": "Schwarze Pumpe",
+      "customer": "Zweckverband",
+      "description": "präsentation",
+      "hours": 3,
+      "rate": 350,
+      "invoiceNumber": "RG-2026-09-025"
+    }
+  ],
+  "nextProjectId": 3,
+  "nextCustomerId": 4,
+  "nextEntryId": 2,
+  "nextInvoiceNumber": 26
 }
