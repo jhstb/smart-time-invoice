@@ -1,45 +1,7 @@
 {
-  "timeEntries": [
-    {
-      "id": 1,
-      "date": "2026-09-07",
-      "projectId": 1,
-      "customerId": 1,
-      "project": "Wissenschafts- und Kulturpark Schwielowsee",
-      "customer": "Gegenbauer",
-      "description": "power",
-      "hours": 2,
-      "rate": 350,
-      "invoiceNumber": "RG-2026-09-025"
-    },
-    {
-      "id": 2,
-      "date": "2026-09-04",
-      "projectId": 1,
-      "customerId": 1,
-      "project": "Wissenschafts- und Kulturpark Schwielowsee",
-      "customer": "Gegenbauer",
-      "description": "tagung",
-      "hours": 10,
-      "rate": 350,
-      "invoiceNumber": "RG-2026-09-025"
-    },
-    {
-      "date": "7.9.2026",
-      "projectId": 2,
-      "customerId": 3,
-      "description": "Präsentation",
-      "hours": 4
-    }
-  ],
+  "version": 3,
+  "exportedAt": "2026-09-08T12:08:02.254Z",
   "projects": [
-    {
-      "id": 1,
-      "name": "Wissenschafts- und Kulturpark Schwielowsee",
-      "customerIds": [
-        1
-      ]
-    },
     {
       "id": 2,
       "name": "Schwarze Pumpe",
@@ -49,10 +11,17 @@
       ]
     },
     {
-      "id": 1,
-      "name": "Schwarze Pumpe",
+      "id": 3,
+      "name": "CMS-USA",
       "customerIds": [
-        2
+        4
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Petzow",
+      "customerIds": [
+        1
       ]
     }
   ],
@@ -60,7 +29,7 @@
     {
       "id": 1,
       "name": "Gegenbauer",
-      "address": ""
+      "address": "Starstr 7 \\n\r14195 Berlin \\n\rDeutschland"
     },
     {
       "id": 2,
@@ -76,9 +45,113 @@
       "id": 1,
       "name": "Joh Schöneberg",
       "address": ""
+    },
+    {
+      "id": 4,
+      "name": "CMS Hasche Sigle",
+      "address": "c/o Prof. Marion Bernhardt\nLennéstraße 7\n10785 Berlin"
     }
   ],
-  "nextProjectId": 3,
-  "nextCustomerId": 4,
+  "timeEntries": [
+    {
+      "id": 2,
+      "date": "2026-12-15",
+      "projectId": 4,
+      "customerId": 1,
+      "project": "Petzow",
+      "customer": "Gegenbauer",
+      "description": "Umsetzung aus gemeinsamen Treffen",
+      "hours": 2.5,
+      "rate": 300,
+      "invoiceNumber": ""
+    },
+    {
+      "id": 3,
+      "date": "2026-12-14",
+      "projectId": 4,
+      "customerId": 1,
+      "project": "Petzow",
+      "customer": "Gegenbauer",
+      "description": "Neues Konzept V1",
+      "hours": 8,
+      "rate": 300,
+      "invoiceNumber": ""
+    },
+    {
+      "id": 4,
+      "date": "2026-12-16",
+      "projectId": 4,
+      "customerId": 1,
+      "project": "Petzow",
+      "customer": "Gegenbauer",
+      "description": "V2 inkl Villa Hagemann und Kunstlandschaft",
+      "hours": 6,
+      "rate": 300,
+      "invoiceNumber": ""
+    },
+    {
+      "id": 5,
+      "date": "2026-12-17",
+      "projectId": 4,
+      "customerId": 1,
+      "project": "Petzow",
+      "customer": "Gegenbauer",
+      "description": "Vervollständigung V2",
+      "hours": 6,
+      "rate": 300,
+      "invoiceNumber": ""
+    },
+    {
+      "id": 6,
+      "date": "2026-12-18",
+      "projectId": 4,
+      "customerId": 1,
+      "project": "Petzow",
+      "customer": "Gegenbauer",
+      "description": "Erstellung V3",
+      "hours": 7.5,
+      "rate": 300,
+      "invoiceNumber": ""
+    },
+    {
+      "id": 7,
+      "date": "2026-12-21",
+      "projectId": 4,
+      "customerId": 1,
+      "project": "Petzow",
+      "customer": "Gegenbauer",
+      "description": "Version V4 vollständig inklusive Video",
+      "hours": 5,
+      "rate": 300,
+      "invoiceNumber": ""
+    },
+    {
+      "id": 8,
+      "date": "2026-12-11",
+      "projectId": 4,
+      "customerId": 1,
+      "project": "Petzow",
+      "customer": "Gegenbauer",
+      "description": "Neues Konzept V0",
+      "hours": 4,
+      "rate": 300,
+      "invoiceNumber": ""
+    },
+    {
+      "id": 9,
+      "date": "2026-12-15",
+      "projectId": 3,
+      "customerId": 4,
+      "project": "CMS-USA",
+      "customer": "CMS Hasche Sigle",
+      "description": "PPT und Flyer-Entwurf",
+      "hours": 5.5,
+      "rate": 350,
+      "invoiceNumber": ""
+    }
+  ],
+  "nextProjectId": 5,
+  "nextCustomerId": 5,
+  "nextEntryId": 10,
   "nextInvoiceNumber": 26
 }
