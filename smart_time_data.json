@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "exportedAt": "2026-09-08T12:08:02.254Z",
+  "exportedAt": "2026-09-15T11:19:30.103Z",
   "projects": [
     {
       "id": 2,
@@ -148,10 +148,46 @@
       "hours": 5.5,
       "rate": 350,
       "invoiceNumber": ""
+    },
+    {
+      "id": 10,
+      "date": "2026-09-21",
+      "projectId": 2,
+      "customerId": 2,
+      "project": "Schwarze Pumpe",
+      "customer": "Christine Herntier",
+      "description": "Erste Vorbereitungen\nEntwurf von Exposé und Broschüre",
+      "hours": 6,
+      "rate": 350,
+      "invoiceNumber": ""
+    },
+    {
+      "id": 11,
+      "date": "2026-09-15",
+      "projectId": 2,
+      "customerId": 2,
+      "project": "Schwarze Pumpe",
+      "customer": "Christine Herntier",
+      "description": "1. Marktanalyse durchgeführt und dokumentiert\n2. Erste Präsentation erarbeitet",
+      "hours": 7,
+      "rate": 350,
+      "invoiceNumber": ""
+    },
+    {
+      "id": 12,
+      "date": "2026-09-16",
+      "projectId": 2,
+      "customerId": 2,
+      "project": "Schwarze Pumpe",
+      "customer": "Christine Herntier",
+      "description": "1. Liste mit 100 Firmen zusammengestellt\n2. Kontaktkategorien und Adressen zusammengestellt",
+      "hours": 7,
+      "rate": 350,
+      "invoiceNumber": ""
     }
   ],
   "nextProjectId": 5,
   "nextCustomerId": 5,
-  "nextEntryId": 10,
+  "nextEntryId": 13,
   "nextInvoiceNumber": 26
 }
